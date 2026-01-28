@@ -1230,7 +1230,7 @@ app.get('/verificar/:token', (req, res) => {
 </head>
 <body>
   <div class="container">
-    <img src="https://www.epen.gov.ar/wp-content/uploads/2024/02/Logo-EPEN.jpg" class="header-img" alt="EPEN" style="object-fit:contain;background:#fff;padding:10px;">
+    <img src="https://www.epen.gov.ar/wp-content/uploads/2025/05/head-nuevo2.png" class="header-img" alt="EPEN">
     <div class="content">
       <div class="doc-title">CONSTANCIA DE NOTIFICACIÓN PRESENCIAL</div>
 
