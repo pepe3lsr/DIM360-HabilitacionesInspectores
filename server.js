@@ -95,6 +95,11 @@ db.serialize(() => {
     )
   `);
 
+  // Migration: add notified_at column if missing (for existing DBs)
+  db.run(`ALTER TABLE notifications ADD COLUMN notified_at TIMESTAMP`, (err) => {
+    // Ignore error if column already exists
+  });
+
   db.run(`
     CREATE TABLE IF NOT EXISTS import_batches (
       id INTEGER PRIMARY KEY,
