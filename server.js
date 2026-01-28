@@ -1195,8 +1195,9 @@ app.get('/verificar/:token', (req, res) => {
       if (err || !n) {
         return res.status(404).send('<html><body><h1>Notificación no encontrada</h1></body></html>');
       }
-      const fecha = n.created_at ? new Date(n.created_at).toLocaleString('es-AR') : '-';
-      const fechaNotif = n.notified_at ? new Date(n.notified_at).toLocaleString('es-AR') : '-';
+      const tzOpts = { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+      const fecha = n.created_at ? new Date(n.created_at).toLocaleString('es-AR', tzOpts) : '-';
+      const fechaNotif = n.notified_at ? new Date(n.notified_at).toLocaleString('es-AR', tzOpts) : '-';
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.send(`<!DOCTYPE html>
 <html lang="es">
