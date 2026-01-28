@@ -1,600 +1,321 @@
-# 🚀 Guía para Pasar a Producción
+# Guia para Pasar a Produccion
 
-## 📋 Estado Actual: Mockup vs Real
+## Estado Actual del Sistema
 
-### ✅ **LO QUE FUNCIONA REALMENTE**
+### Ya implementado y funcionando
 
-#### App Móvil:
-- ✅ Captura de firma táctil (dibuja con el dedo)
-- ✅ Captura de foto con cámara real del dispositivo
-- ✅ Navegación entre pantallas
-- ✅ Validaciones de formularios
-- ✅ Permisos de cámara
+| Componente | Estado | Detalle |
+|---|---|---|
+| BD SQLite persistente | OK | Archivo `data/epen.db` (persiste entre reinicios) |
+| API REST completa | OK | 25+ endpoints con Express |
+| Autenticacion JWT | OK | Login, middleware `verifyToken` y `verifyAdmin` |
+| Passwords hasheados | OK | bcryptjs |
+| Importacion CSV | OK | Carga masiva con campos EPEN |
+| Asignacion por zona | OK | Individual y masiva |
+| Panel Admin completo | OK | Dashboard, CRUD, paginacion, filtros, exportacion |
+| App movil (Expo Snack) | OK | Login, listado, filtros, busqueda, detalle |
+| Captura de foto | OK | Camara real con `expo-image-picker` |
+| Captura GPS | OK | `expo-location` con alta precision |
+| Firma digital tactil | OK | Canvas SVG con PanResponder |
+| Constancia publica | OK | `/verificar/:token` con QR, foto, firma, GPS |
+| Fecha/hora Argentina | OK | Timezone `America/Argentina/Buenos_Aires` |
+| Fotos y firmas | OK | Base64 completo en BD + archivos en `data/captures/` |
 
-#### Panel Web:
-- ✅ Crear/Listar/Eliminar notificaciones
-- ✅ Ver detalles completos
-- ✅ Estadísticas en tiempo real
-- ✅ Toda la interfaz visual
+### Pendiente para produccion
 
-#### Backend:
-- ✅ API REST completa
-- ✅ Autenticación JWT
-- ✅ Generación de tokens y QR
-
----
-
-### ❌ **LO QUE ES MOCKUP (Simulado)**
-
-#### App Móvil:
-1. **GPS/Geolocalización** - Coordenadas FIJAS
-   - Archivo: `App.snack.jsx` líneas 230-235
-   - Problema: Siempre devuelve `-38.9516, -68.0591`
-
-2. **Modo DEMO activado** - No conecta al backend
-   - Archivo: `App.snack.jsx` línea 21
-   - Problema: Usa datos hardcodeados
-
-3. **8 Notificaciones hardcodeadas**
-   - Archivo: `App.snack.jsx` líneas 24-89
-   - Problema: No se actualizan desde el backend
-
-#### Backend:
-1. **Base de Datos EN MEMORIA**
-   - Archivo: `server.js` línea 34
-   - Problema: Se pierden TODOS los datos al reiniciar
-
-2. **SMS no funciona** - Twilio no configurado
-   - Archivo: `server.js` líneas 20-31
-   - Problema: Solo imprime en consola
-
-3. **Imágenes no se guardan completas**
-   - Archivo: `server.js` líneas 510-511
-   - Problema: Solo guarda 50 caracteres
+| Item | Prioridad | Detalle |
+|---|---|---|
+| DEMO_MODE = false | Alta | Desactivar modo demo en la app |
+| API_URL real | Alta | Apuntar la app al servidor de produccion |
+| JWT_SECRET seguro | Alta | Cambiar clave por defecto en `.env` |
+| Credenciales admin | Alta | Cambiar admin/admin123 por defecto |
+| HTTPS / SSL | Alta | Certificado para el dominio |
+| SMS con Twilio | Media | Configurar credenciales reales |
+| Rate limiting | Media | Proteccion contra fuerza bruta |
+| CORS restrictivo | Media | Limitar origenes permitidos |
+| Backups automaticos | Media | Copia periodica de `data/epen.db` |
+| Compilar APK | Baja | Build con EAS para distribucion |
 
 ---
 
-## 🔧 CAMBIOS PARA PRODUCCIÓN
+## Paso 1: Configurar el Servidor
 
-### **1. Habilitar GPS Real en la App**
+### 1.1 Variables de entorno
 
-#### Paso 1.1: Instalar dependencia de geolocalización
+Crear archivo `.env` en la raiz del proyecto:
 
-En `package.mobile.json`, agregar:
-```json
-{
-  "dependencies": {
-    "expo-image-picker": "~15.0.7",
-    "expo-location": "~17.0.1"
-  }
+```bash
+# Seguridad
+JWT_SECRET=clave-secreta-de-al-menos-32-caracteres-aqui
+NODE_ENV=production
+
+# Twilio (opcional, para SMS)
+TWILIO_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_TOKEN=tu-auth-token-real
+TWILIO_PHONE=+5491112345678
+
+# Puerto (opcional, default 3000)
+PORT=3000
+```
+
+El servidor ya carga variables de entorno con `process.env`. El `.env` ya esta en `.gitignore`.
+
+### 1.2 Instalar PM2 (process manager)
+
+```bash
+npm install -g pm2
+
+# Iniciar el servidor
+pm2 start server.js --name epen-notificaciones
+
+# Que arranque con el sistema
+pm2 startup
+pm2 save
+
+# Comandos utiles
+pm2 status          # Ver estado
+pm2 logs epen-notificaciones  # Ver logs
+pm2 restart epen-notificaciones  # Reiniciar
+```
+
+### 1.3 Configurar Nginx como reverse proxy
+
+Instalar Nginx y crear configuracion:
+
+```nginx
+# /etc/nginx/sites-available/epen
+server {
+    listen 80;
+    server_name tu-dominio.com;
+
+    # Redirigir a HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name tu-dominio.com;
+
+    ssl_certificate /etc/letsencrypt/live/tu-dominio.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tu-dominio.com/privkey.pem;
+
+    client_max_body_size 50M;  # Para fotos base64
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
-#### Paso 1.2: Modificar código de GPS
-
-En `App.snack.jsx`, **REEMPLAZAR** líneas 1-17 con:
-```javascript
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Image,
-  ActivityIndicator,
-  StyleSheet,
-  Platform,
-  Modal,
-  PanResponder,
-} from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location'; // AGREGAR ESTA LÍNEA
+```bash
+sudo ln -s /etc/nginx/sites-available/epen /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
-#### Paso 1.3: Actualizar función de GPS
+### 1.4 Certificado SSL con Let's Encrypt
 
-En `App.snack.jsx`, **REEMPLAZAR** la función `requestPermissions` (líneas 238-251) con:
-```javascript
-const requestPermissions = async () => {
-  try {
-    // Solicitar permisos de cámara
-    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!cameraPermission.granted) {
-      Alert.alert(
-        '⚠️ Permisos necesarios',
-        'Se necesita acceso a la cámara para tomar fotos del domicilio'
-      );
-    }
-
-    // Solicitar permisos de ubicación
-    const locationPermission = await Location.requestForegroundPermissionsAsync();
-    if (!locationPermission.granted) {
-      Alert.alert(
-        '⚠️ Permisos necesarios',
-        'Se necesita acceso a la ubicación para registrar la posición'
-      );
-    }
-  } catch (error) {
-    console.log('Error solicitando permisos:', error);
-  }
-};
-```
-
-#### Paso 1.4: Capturar GPS Real
-
-En `App.snack.jsx`, **REEMPLAZAR** el useEffect (líneas 218-236) con:
-```javascript
-useEffect(() => {
-  // Validar que notification existe
-  if (!notification) {
-    Alert.alert('Error', 'No se recibió información de la notificación');
-    onBack();
-    return;
-  }
-
-  // Solicitar permisos
-  requestPermissions();
-
-  // Capturar GPS REAL del dispositivo
-  const getGPS = async () => {
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('⚠️ Error', 'Permisos de ubicación no otorgados');
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High
-      });
-
-      setGps({
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
-      });
-
-      Alert.alert('✅ GPS Capturado', `Lat: ${location.coords.latitude.toFixed(4)}, Lng: ${location.coords.longitude.toFixed(4)}`);
-    } catch (error) {
-      console.error('Error obteniendo GPS:', error);
-      Alert.alert('❌ Error GPS', 'No se pudo obtener la ubicación');
-    }
-  };
-
-  getGPS();
-}, []);
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d tu-dominio.com
+# Se renueva automaticamente
 ```
 
 ---
 
-### **2. Conectar App con Backend Real**
+## Paso 2: Conectar la App Movil
 
-#### Paso 2.1: Desactivar modo DEMO
+### 2.1 Desactivar modo demo
 
-En `App.snack.jsx`, **CAMBIAR** línea 21:
+En `App.snack.jsx`, cambiar linea 21:
+
 ```javascript
-const DEMO_MODE = false; // CAMBIAR A FALSE
+const DEMO_MODE = false;
 ```
 
-#### Paso 2.2: Configurar URL del Backend
+### 2.2 Configurar URL del backend
 
-En `App.snack.jsx`, **CAMBIAR** línea 20:
+En `App.snack.jsx`, cambiar linea 20:
+
 ```javascript
-// Para desarrollo local (misma red WiFi):
-const API_URL = 'http://TU_IP_LOCAL:3000'; // Ejemplo: http://192.168.1.100:3000
+// Desarrollo local (misma red WiFi):
+const API_URL = 'http://192.168.1.100:3000';
 
-// Para producción (servidor en la nube):
+// Produccion (con dominio y HTTPS):
 const API_URL = 'https://tu-dominio.com';
 ```
 
-**Cómo obtener tu IP local:**
-- Windows: `ipconfig` (busca "IPv4")
-- Mac/Linux: `ifconfig` (busca "inet")
+Para obtener tu IP local en desarrollo:
+- Windows: `ipconfig` (buscar IPv4)
+- Linux/Mac: `hostname -I`
+
+### 2.3 Compilar APK para distribucion (opcional)
+
+Si queres distribuir la app fuera de Expo Go:
+
+```bash
+npm install -g eas-cli
+eas login
+eas build --platform android --profile preview
+```
+
+Esto genera un APK que se puede instalar directamente en los celulares de los notificadores.
 
 ---
 
-### **3. Persistir Base de Datos (NO perder datos)**
+## Paso 3: Seguridad
 
-#### Opción A: SQLite en Archivo (Recomendado para desarrollo)
+### 3.1 Cambiar credenciales por defecto
 
-En `server.js`, **CAMBIAR** línea 34:
-```javascript
-// ANTES (en memoria):
-const db = new sqlite3.Database(':memory:');
+Al iniciar por primera vez, el servidor crea un admin con `admin@epen.gov.ar / admin123`. Cambia la contrasena inmediatamente desde el panel o la base de datos.
 
-// DESPUÉS (en archivo):
-const db = new sqlite3.Database('./database/epen.db');
-```
+### 3.2 Rate limiting
 
-Crear carpeta:
+Instalar y configurar en `server.js`:
+
 ```bash
-mkdir database
+npm install express-rate-limit
 ```
 
-#### Opción B: PostgreSQL (Recomendado para producción)
-
-1. Instalar dependencia:
-```bash
-npm install pg
-```
-
-2. Crear archivo `database.js`:
 ```javascript
-const { Pool } = require('pg');
+const rateLimit = require('express-rate-limit');
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'epen_db',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password'
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 10, // maximo 10 intentos
+  message: { error: 'Demasiados intentos, intente en 15 minutos' }
 });
 
-module.exports = pool;
+app.use('/auth/login', loginLimiter);
 ```
 
-3. Crear migraciones en `migrations/001_create_tables.sql`:
-```sql
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE,
-  password VARCHAR(255),
-  role VARCHAR(50)
-);
+### 3.3 CORS restrictivo
 
-CREATE TABLE IF NOT EXISTS notifications (
-  id SERIAL PRIMARY KEY,
-  citizen_name VARCHAR(255),
-  citizen_phone VARCHAR(50),
-  address TEXT,
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
-  status VARCHAR(50) DEFAULT 'pending',
-  notifier_id INTEGER REFERENCES users(id),
-  photo_path TEXT,
-  signature_path TEXT,
-  token VARCHAR(255) UNIQUE,
-  qr_code TEXT,
-  sms_sent BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+En `server.js`, reemplazar `app.use(cors())` por:
 
-CREATE INDEX idx_notifications_status ON notifications(status);
-CREATE INDEX idx_notifications_created_at ON notifications(created_at);
+```javascript
+app.use(cors({
+  origin: ['https://tu-dominio.com', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+```
+
+### 3.4 Firewall
+
+```bash
+sudo ufw allow 22    # SSH
+sudo ufw allow 80    # HTTP (redirige a HTTPS)
+sudo ufw allow 443   # HTTPS
+sudo ufw enable
 ```
 
 ---
 
-### **4. Guardar Imágenes Completas**
+## Paso 4: Backups
 
-#### Paso 4.1: Crear carpeta de uploads
+### 4.1 Script de backup
 
-```bash
-mkdir -p uploads/photos
-mkdir -p uploads/signatures
-```
-
-#### Paso 4.2: Instalar dependencia para manejar base64
+Crear `backup.sh`:
 
 ```bash
-npm install fs-extra
+#!/bin/bash
+BACKUP_DIR="/home/epen/backups"
+DB_PATH="/home/epen/notificadores/data/epen.db"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p $BACKUP_DIR
+cp $DB_PATH "$BACKUP_DIR/epen_$DATE.db"
+
+# Mantener solo los ultimos 30 backups
+ls -t $BACKUP_DIR/epen_*.db | tail -n +31 | xargs rm -f 2>/dev/null
+
+echo "Backup completado: epen_$DATE.db"
 ```
 
-#### Paso 4.3: Actualizar endpoint de captura
+### 4.2 Programar con cron
 
-En `server.js`, **REEMPLAZAR** el endpoint `/api/notifications/:id/capture` (líneas 481-553) con:
-
-```javascript
-const fs = require('fs-extra');
-const path = require('path');
-
-// Actualizar notificación con datos de captura (foto, firma, GPS)
-app.post('/api/notifications/:id/capture', async (req, res) => {
-  const { photo_base64, signature_base64, gps_lat, gps_lng } = req.body;
-  const notificationId = req.params.id;
-
-  try {
-    // Generar token único
-    const timestamp = new Date().toISOString();
-    const token = generateToken({ lat: gps_lat, lng: gps_lng }, timestamp, notificationId);
-    const qr_url = generateQR(token);
-
-    // Guardar foto como archivo
-    let photoPath = null;
-    if (photo_base64) {
-      const photoBuffer = Buffer.from(photo_base64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      photoPath = `uploads/photos/${notificationId}_${Date.now()}.jpg`;
-      await fs.writeFile(photoPath, photoBuffer);
-    }
-
-    // Guardar firma como archivo
-    let signaturePath = null;
-    if (signature_base64) {
-      const signatureBuffer = Buffer.from(signature_base64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-      signaturePath = `uploads/signatures/${notificationId}_${Date.now()}.png`;
-      await fs.writeFile(signaturePath, signatureBuffer);
-    }
-
-    // Actualizar BD
-    db.run(
-      `
-        UPDATE notifications
-        SET status = 'synced',
-            token = ?,
-            qr_code = ?,
-            latitude = ?,
-            longitude = ?,
-            photo_path = ?,
-            signature_path = ?
-        WHERE id = ?
-      `,
-      [token, qr_url, gps_lat, gps_lng, photoPath, signaturePath, notificationId],
-      function(err) {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-
-        // Obtener datos del ciudadano para SMS
-        db.get(
-          'SELECT citizen_phone, citizen_name FROM notifications WHERE id = ?',
-          [notificationId],
-          (err, row) => {
-            if (row && row.citizen_phone) {
-              const paymentLink = `https://pago.ejemplo.com/notificacion/${token}`;
-
-              if (client) {
-                client.messages
-                  .create({
-                    body: `Estimado ${row.citizen_name}, ha recibido una notificación. Pague aquí: ${paymentLink}`,
-                    from: TWILIO_PHONE,
-                    to: row.citizen_phone
-                  })
-                  .then(() => {
-                    db.run('UPDATE notifications SET sms_sent = 1 WHERE id = ?', [notificationId]);
-                  })
-                  .catch((err) => console.log('SMS error:', err));
-              } else {
-                console.log('SMS simulado (Twilio no configurado):', paymentLink);
-              }
-            }
-
-            res.json({
-              success: true,
-              token,
-              qr_url,
-              payment_link: `https://pago.ejemplo.com/notificacion/${token}`
-            });
-          }
-        );
-      }
-    );
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-```
-
-#### Paso 4.4: Servir imágenes estáticamente
-
-En `server.js`, **AGREGAR** después de línea 38:
-```javascript
-app.use('/uploads', express.static('uploads')); // Servir imágenes
+```bash
+chmod +x backup.sh
+crontab -e
+# Agregar: backup diario a las 3 AM
+0 3 * * * /home/epen/notificadores/backup.sh
 ```
 
 ---
 
-### **5. Configurar SMS Real con Twilio**
+## Paso 5: SMS con Twilio (opcional)
 
-#### Paso 5.1: Crear cuenta en Twilio
-
-1. Ve a https://www.twilio.com/
-2. Regístrate gratis (dan crédito de prueba)
-3. Crea un número de teléfono
-4. Obtén tus credenciales:
-   - Account SID
-   - Auth Token
-   - Phone Number
-
-#### Paso 5.2: Configurar variables de entorno
-
-Crear archivo `.env`:
-```bash
-# JWT
-JWT_SECRET=tu-clave-secreta-super-segura-12345
-
-# Twilio
-TWILIO_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_TOKEN=tu-token-de-twilio
-TWILIO_PHONE=+1234567890
-
-# Base de Datos (si usas PostgreSQL)
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=epen_db
-DB_USER=postgres
-DB_PASSWORD=tu-password
-```
-
-#### Paso 5.3: Cargar variables de entorno
-
-En `server.js`, **AGREGAR** al inicio:
-```javascript
-require('dotenv').config(); // AGREGAR ESTA LÍNEA al inicio
-
-const express = require('express');
-// ... resto del código
-```
+1. Crear cuenta en https://www.twilio.com/
+2. Obtener Account SID, Auth Token y un numero de telefono
+3. Configurar en `.env`:
+   ```
+   TWILIO_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_TOKEN=tu-auth-token
+   TWILIO_PHONE=+5491112345678
+   ```
+4. Reiniciar el servidor. Twilio se activa automaticamente si las credenciales son validas.
 
 ---
 
-### **6. Seguridad para Producción**
+## Checklist de Deploy
 
-#### 6.1: Hashear Passwords
+### Pre-deploy
+- [ ] Crear archivo `.env` con `JWT_SECRET` seguro
+- [ ] Cambiar credenciales admin por defecto
+- [ ] Verificar que `.env` esta en `.gitignore`
+- [ ] Probar importacion CSV con datos reales
 
-```bash
-npm install bcrypt
-```
+### Servidor
+- [ ] Instalar Node.js >= 16 en el servidor
+- [ ] Clonar repo: `git clone https://github.com/pepe3lsr/notificadores.git`
+- [ ] `npm install`
+- [ ] Crear `.env` con variables de produccion
+- [ ] Configurar PM2
+- [ ] Configurar Nginx + SSL
+- [ ] Configurar firewall
+- [ ] Configurar backups automaticos
 
-En `server.js`:
-```javascript
-const bcrypt = require('bcrypt');
-
-// Al crear usuario:
-const hashedPassword = await bcrypt.hash(password, 10);
-
-// Al login:
-const isValid = await bcrypt.compare(password, user.password);
-```
-
-#### 6.2: Validar JWT en Panel Web
-
-En `public/admin.html`, agregar autenticación:
-```javascript
-// Guardar token al login
-localStorage.setItem('admin_token', token);
-
-// Agregar token a todas las peticiones
-fetch('/api/notifications', {
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
-  }
-});
-```
-
-#### 6.3: HTTPS en Producción
-
-Usar certificado SSL (Let's Encrypt gratis):
-```bash
-npm install express-sslify
-```
-
-```javascript
-const enforce = require('express-sslify');
-if (process.env.NODE_ENV === 'production') {
-  app.use(enforce.HTTPS({ trustProtoHeader: true }));
-}
-```
-
----
-
-## 📋 Checklist Completo para Producción
-
-### App Móvil:
-- [ ] Instalar `expo-location`
+### App Movil
 - [ ] Cambiar `DEMO_MODE = false`
-- [ ] Actualizar `API_URL` con IP/dominio real
-- [ ] Implementar GPS real con `expo-location`
-- [ ] Probar permisos de GPS en dispositivo físico
-- [ ] Probar conexión con backend real
+- [ ] Configurar `API_URL` con dominio/IP real
+- [ ] Probar login contra backend real
+- [ ] Probar captura completa (foto + GPS + firma)
+- [ ] Verificar que la constancia se genera correctamente
+- [ ] (Opcional) Compilar APK con EAS Build
 
-### Backend:
-- [ ] Cambiar BD de `:memory:` a archivo o PostgreSQL
-- [ ] Configurar Twilio con credenciales reales
-- [ ] Implementar guardado de imágenes completas
-- [ ] Crear carpetas `uploads/photos` y `uploads/signatures`
-- [ ] Instalar `fs-extra` para manejar archivos
-- [ ] Servir imágenes con `express.static('/uploads')`
-- [ ] Hashear passwords con bcrypt
-- [ ] Validar JWT en todos los endpoints
-- [ ] Configurar HTTPS
-- [ ] Crear archivo `.env` con secretos
-
-### Base de Datos:
-- [ ] Migrar de SQLite a PostgreSQL (producción)
-- [ ] Crear índices en tablas
-- [ ] Hacer backup automático
-- [ ] Configurar replicación (opcional)
-
-### Deployment:
-- [ ] Configurar servidor (AWS, DigitalOcean, etc.)
-- [ ] Instalar Node.js en servidor
-- [ ] Configurar Nginx como reverse proxy
-- [ ] Configurar PM2 para mantener app corriendo
-- [ ] Configurar dominio y DNS
-- [ ] Instalar certificado SSL
+### Post-deploy
+- [ ] Verificar acceso al panel admin
+- [ ] Importar primer lote de notificaciones reales
+- [ ] Crear usuarios notificadores reales
+- [ ] Probar ciclo completo: importar -> asignar -> notificar -> verificar
+- [ ] Configurar Twilio si se necesita SMS
 
 ---
 
-## 🗄️ Dónde se Guardan los Datos ACTUALMENTE
+## Arquitectura en Produccion
 
-### Base de Datos (EN MEMORIA - TEMPORAL):
 ```
-Ubicación: RAM del servidor
-Archivo: server.js línea 34
-Tipo: SQLite en memoria
-
-⚠️ IMPORTANTE: Se pierden TODOS los datos al reiniciar el servidor
-
-Tablas:
-- users (credenciales)
-- notifications (todas las notificaciones)
-- sync_queue (cola de sincronización)
-```
-
-### Imágenes (NO SE GUARDAN COMPLETAS):
-```
-Ubicación: Base de datos (solo primeros 50 caracteres)
-Archivo: server.js líneas 510-511
-
-⚠️ IMPORTANTE: Solo guarda referencia, NO la imagen completa
+Internet
+    |
+    v
+[Nginx + SSL]  (puerto 443)
+    |
+    v
+[Node.js + Express]  (puerto 3000, solo localhost)
+    |
+    v
+[SQLite: data/epen.db]
+[Capturas: data/captures/]
 ```
 
-### Cómo Verificar:
-```bash
-# Ver si existe archivo de BD (debería NO existir en modo actual)
-ls -la database/
+## Documentacion Relacionada
 
-# Ver qué hay en uploads (debería estar vacío)
-ls -la uploads/
-```
-
----
-
-## 🚀 Pasos Rápidos para Probar Producción
-
-### 1. Base de Datos Persistente (5 minutos)
-```bash
-mkdir database
-```
-
-En `server.js` línea 34:
-```javascript
-const db = new sqlite3.Database('./database/epen.db');
-```
-
-Reinicia el servidor:
-```bash
-node server.js
-```
-
-Ahora los datos se guardan en `database/epen.db` ✅
-
-### 2. GPS Real en App (10 minutos)
-```bash
-# En package.mobile.json
-"expo-location": "~17.0.1"
-```
-
-Copiar código del **Paso 1.2, 1.3 y 1.4** de arriba ✅
-
-### 3. Conectar App con Backend (2 minutos)
-En `App.snack.jsx`:
-```javascript
-const DEMO_MODE = false;
-const API_URL = 'http://192.168.1.100:3000'; // Tu IP local
-```
-
----
-
-## 📞 Soporte
-
-Si tienes dudas sobre algún cambio específico, revisa:
-- `PANEL_ADMIN.md` - Uso del panel web
-- `INSTRUCCIONES_APP.md` - Uso de la app móvil
-- `COMO_USAR_EN_EXPO_SNACK.md` - Configuración en Expo
-
----
-
-**¿Listo para producción?** Sigue el checklist y tendrás un sistema completamente funcional 🚀
+- [README.md](README.md) - Documentacion general del proyecto
+- [PANEL_ADMIN.md](PANEL_ADMIN.md) - Guia del panel de administracion
+- [INSTRUCCIONES_APP.md](INSTRUCCIONES_APP.md) - Guia de la app movil
+- [QUICKSTART.md](QUICKSTART.md) - Inicio rapido
