@@ -1284,7 +1284,7 @@
             <td><span class="zone-badge">${n.zona || '-'}</span></td>
             <td><span class="status-badge status-${n.status}">${getStatusText(n.status)}</span></td>
             <td style="font-size:12px;">${n.created_at ? formatDate(n.created_at) : '-'}</td>
-            <td>${n.notifier_id ? 'Asignado #' + n.notifier_id : '-'}</td>
+            <td>${n.notifier_name || (n.notifier_id ? '#' + n.notifier_id : '-')}</td>
             <td>
               <button class="action-btn btn-view" onclick="viewDetail(${n.id})">👁️</button>
               <button class="action-btn btn-assign" onclick="editNotification(${n.id})">✏️</button>

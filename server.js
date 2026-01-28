@@ -935,14 +935,15 @@ app.get('/api/notifications', verifyAdmin, (req, res) => {
   db.all(
     `
       SELECT
-        id, citizen_name, citizen_phone, address,
-        latitude, longitude, status, token, qr_code,
-        sms_sent, photo_path, signature_path, created_at,
-        nro_orden, suministro, nro_cliente, tipo_notificacion,
-        nro_cronograma, correo, sucursal, zona, import_batch_id,
-        notifier_id
-      FROM notifications
-      ORDER BY created_at DESC
+        n.id, n.citizen_name, n.citizen_phone, n.address,
+        n.latitude, n.longitude, n.status, n.token, n.qr_code,
+        n.sms_sent, n.photo_path, n.signature_path, n.created_at,
+        n.nro_orden, n.suministro, n.nro_cliente, n.tipo_notificacion,
+        n.nro_cronograma, n.correo, n.sucursal, n.zona, n.import_batch_id,
+        n.notifier_id, u.name as notifier_name, u.email as notifier_email
+      FROM notifications n
+      LEFT JOIN users u ON n.notifier_id = u.id
+      ORDER BY n.created_at DESC
       LIMIT ?
     `,
     [limit],
