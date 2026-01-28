@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin - Sistema de Notificaciones EPEN</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f6f6f6;
+      min-height: 100vh;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 0 20px 20px; }
+
+    .header {
+      background: white;
+      padding: 24px 30px;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .tab:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .tab.active { background: #2e7d32; color: white; }
+
+    .panel { display: none; animation: fadeIn 0.3s; }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #2e7d32;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .btn-primary { background: #2e7d32; color: white; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-danger { background: #c62828; color: white; }
+    .btn-warning { background: #388e3c; color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-left: 5px solid;
+    }
+
+    .stat-card.pending { border-left-color: #ffc107; }
+    .stat-card.completed { border-left-color: #2e7d32; }
+    .stat-card.total { border-left-color: #2e7d32; }
+    .stat-card.import { border-left-color: #388e3c; }
+
+    .stat-number { font-size: 26px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px; }
+    .stat-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .table-container {
+      overflow-x: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
+
+    th {
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #555;
+      font-size: 13px;
+    }
+
+    tr:hover { background: #f8f9fa; }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-in_progress { background: #cce5ff; color: #004085; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-synced { background: #d4edda; color: #155724; }
+
+    .action-btn {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      margin-right: 4px;
+    }
+
+    .btn-view { background: #2e7d32; color: white; }
+    .btn-delete { background: #c62828; color: white; }
+    .btn-assign { background: #388e3c; color: white; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h2 { font-size: 20px; color: #1a1a1a; }
+
+    .close-btn {
+      background: none; border: none;
+      font-size: 28px; cursor: pointer; color: #999;
+    }
+
+    .close-btn:hover { color: #c62828; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .detail-item {
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .detail-label {
+      font-size: 11px; color: #666; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;
+    }
+
+    .detail-value { font-size: 14px; color: #1a1a1a; word-break: break-word; }
+
+    .image-preview {
+      width: 100%; max-width: 400px;
+      border-radius: 8px; margin-top: 8px;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      animation: slideIn 0.3s;
+    }
+
+    .alert.active { display: block; }
+
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .alert-success { background: #d4edda; color: #155724; border-left: 4px solid #2e7d32; }
+    .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #c62828; }
+
+    /* Upload area */
+    .upload-area {
+      border: 3px dashed #2e7d32;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      background: #f1f8e9;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .upload-area:hover { background: #e8f5e9; border-color: #1b5e20; }
+    .upload-area.dragover { background: #c8e6c9; border-color: #155d1a; }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-text { font-size: 16px; color: #333; font-weight: 600; }
+    .upload-hint { font-size: 13px; color: #666; margin-top: 8px; }
+
+    .import-result {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .import-stat {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin: 4px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+
+    .zone-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .notifier-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notifier-info h3 { font-size: 16px; color: #1a1a1a; margin-bottom: 4px; }
+    .notifier-info p { font-size: 13px; color: #666; }
+
+    .notifier-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .notifier-stat {
+      text-align: center;
+    }
+
+    .notifier-stat .num { font-size: 20px; font-weight: bold; }
+    .notifier-stat .label { font-size: 10px; color: #666; text-transform: uppercase; }
+
+    .checkbox-cell { width: 30px; text-align: center; }
+    .checkbox-cell input { cursor: pointer; width: 16px; height: 16px; }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginScreen" style="display:flex;flex-direction:column;align-items:center;min-height:100vh;background:#f6f6f6;">
+    <div style="width:100%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+      <img src="https://www.epen.gov.ar/wp-content/uploads/2025/05/head-nuevo2.png" alt="EPEN" style="width:100%;display:block;">
+    </div>
+    <div style="background:#fff;border-radius:16px;padding:40px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.1);margin-top:60px;">
+      <h2 style="text-align:center;margin-bottom:8px;color:#2e7d32;">Sistema de Notificaciones</h2>
+      <p style="text-align:center;color:#666;margin-bottom:24px;">Panel Administrativo</p>
+      <div id="loginError" style="display:none;background:#fee;color:#c00;padding:10px;border-radius:8px;margin-bottom:16px;font-size:13px;"></div>
+      <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;box-sizing:border-box;font-size:14px;">
+      <input id="loginPassword" type="password" placeholder="Contraseña" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:20px;box-sizing:border-box;font-size:14px;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="doLogin()" style="width:100%;padding:14px;background:#2e7d32;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600;">Ingresar</button>
+    </div>
+  </div>
+
+  <!-- PANEL PRINCIPAL (oculto hasta login) -->
+  <div id="mainPanel" class="container" style="display:none;">
+    <!-- Header EPEN -->
+    <div style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin:0 -20px;padding:0;">
+      <img src="https://www.epen.gov.ar/wp-content/uploads/2025/05/head-nuevo2.png" alt="EPEN" style="width:100%;display:block;">
+    </div>
+    <div class="header" style="margin-top:20px;">
+      <h1 style="color:#2e7d32;">Sistema de Notificaciones</h1>
+      <div>
+        <span id="adminName" style="color:#666;font-size:13px;margin-right:12px;"></span>
+        <button onclick="doLogout()" style="padding:6px 14px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;">Cerrar sesion</button>
+      </div>
+    </div>
+
+    <div id="alertSuccess" class="alert alert-success"></div>
+    <div id="alertError" class="alert alert-error"></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+      <button class="tab" onclick="switchTab('import', this)">📄 Importar Listado</button>
+      <button class="tab" onclick="switchTab('list', this)">📋 Notificaciones</button>
+      <button class="tab" onclick="switchTab('assign', this)">🗺️ Asignar</button>
+      <button class="tab" onclick="switchTab('recorridos', this)">📍 Recorridos</button>
+      <button class="tab" onclick="switchTab('notifiers', this)">👥 Usuarios</button>
+      <button class="tab" onclick="switchTab('create', this)">➕ Carga Manual</button>
+    </div>
+
+    <!-- Panel: Dashboard -->
+    <div id="dashboard-panel" class="panel active">
+      <div class="stats-grid">
+        <div class="stat-card total" style="cursor:pointer" onclick="goToListWithFilter('')" title="Ver todas">
+          <div class="stat-number" id="stat-total">0</div>
+          <div class="stat-label">Total Notificaciones</div>
+        </div>
+        <div class="stat-card pending" style="cursor:pointer" onclick="goToListWithFilter('pending')" title="Ver pendientes">
+          <div class="stat-number" id="stat-pending">0</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-card completed" style="cursor:pointer" onclick="goToListWithFilter('completed')" title="Ver completadas">
+          <div class="stat-number" id="stat-completed">0</div>
+          <div class="stat-label">Completadas</div>
+        </div>
+        <div class="stat-card import" style="cursor:pointer" onclick="switchTab('import-panel')" title="Ver importaciones">
+          <div class="stat-number" id="stat-imports">0</div>
+          <div class="stat-label">Importaciones</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📈 Notificaciones Recientes</h2>
+        <div id="recent-notifications">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <p>Cargando...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📦 Importaciones Realizadas</h2>
+        <div id="import-history"></div>
+        <div id="pag-dashImports" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Panel: Importar Listado PDF -->
+    <div id="import-panel" class="panel">
+      <div class="card">
+        <h2>📄 Importar Listado de Notificaciones EPEN</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+          Sube el archivo PDF generado por el sistema EPEN con el listado de notificaciones impresas.
+          El sistema extraerá automáticamente: Nro. Orden, Suministro, Cliente, Domicilio y Zona.
+        </p>
+
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('pdfFile').click()">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Arrastrá o hacé clic para subir el PDF</div>
+          <div class="upload-hint">Formato: Listado de Notificaciones Impresas de EPEN</div>
+        </div>
+
+        <input type="file" id="pdfFile" accept=".pdf" style="display: none;" onchange="uploadPDF()">
+
+        <div id="uploadProgress" style="display: none;">
+          <div style="text-align: center; padding: 20px;">
+            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #2e7d32; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p style="margin-top: 12px; color: #666;">Procesando PDF...</p>
+          </div>
+        </div>
+
+        <div id="importResult" style="display: none;"></div>
+      </div>
+
+      <div class="card">
+        <h2>📦 Historial de Importaciones</h2>
+        <div id="import-batches-list"></div>
+        <div id="pag-importBatches" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Panel: Lista de Notificaciones -->
+    <div id="list-panel" class="panel">
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <h2 style="margin-bottom: 0;">📋 Todas las Notificaciones</h2>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <input id="filterSearch" type="text" placeholder="Buscar por apellido, dirección..." oninput="loadNotifications()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; min-width: 200px;">
+            <select id="filterZone" onchange="loadNotifications()" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px;">
+              <option value="">Todas las zonas</option>
+            </select>
+            <select id="filterStatus" onchange="loadNotifications()" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px;">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendientes</option>
+              <option value="in_progress">En Progreso</option>
+              <option value="completed">Completadas</option>
+            </select>
+            <select id="filterSort" onchange="loadNotifications()" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px;">
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="name_asc">Nombre A-Z</option>
+              <option value="name_desc">Nombre Z-A</option>
+            </select>
+            <button class="btn btn-success btn-sm" onclick="loadNotifications()">🔄 Refrescar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nro Orden</th>
+              <th>Cliente</th>
+              <th>Suministro</th>
+              <th>Domicilio</th>
+              <th>Zona</th>
+              <th>Estado</th>
+              <th>Fecha Alta</th>
+              <th>Notificador</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="notifications-table">
+          </tbody>
+        </table>
+        <div id="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:16px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Panel: Asignar Recorridos -->
+    <div id="assign-panel" class="panel">
+      <div class="card">
+        <h2>🗺️ Asignar Recorridos por Zona</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+          Seleccioná una zona y asignala a un notificador. Las notificaciones pendientes de esa zona se asignarán automáticamente.
+        </p>
+
+        <div id="zone-assignment-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>📌 Asignación Individual</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+          Seleccioná notificaciones específicas para asignar a un notificador.
+        </p>
+
+        <div class="form-row" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label>Notificador</label>
+            <select id="assignNotifier">
+              <option value="">Seleccionar notificador...</option>
+            </select>
+          </div>
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button class="btn btn-warning" onclick="assignSelected()">📌 Asignar Seleccionadas</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-cell"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                <th>Nro Orden</th>
+                <th>Cliente</th>
+                <th>Domicilio</th>
+                <th>Zona</th>
+              </tr>
+            </thead>
+            <tbody id="pending-notifications-table"></tbody>
+          </table>
+          <div id="pag-assignPending" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Recorridos -->
+    <div id="recorridos-panel" class="panel">
+      <div class="card">
+        <h2>📍 Recorridos Asignados</h2>
+        <div id="recorridos-list"></div>
+        <div id="pag-recorridos" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+      </div>
+      <div id="recorrido-detail" class="card" style="display:none;">
+        <h3 id="recorrido-detail-title"></h3>
+        <div style="margin-bottom:12px; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-danger btn-sm" onclick="unassignAll()">Desasignar todo</button>
+          <button class="btn btn-danger btn-sm" onclick="unassignSelected()">Desasignar seleccionados</button>
+        </div>
+        <table id="recorrido-detail-table">
+          <thead><tr><th><input type="checkbox" onchange="toggleAllRecorrido(this)"></th><th>Orden</th><th>Cliente</th><th>Dirección</th><th>Zona</th><th>Estado</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="pag-recorridoDetail" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- Panel: Usuarios -->
+    <div id="notifiers-panel" class="panel">
+      <div class="card">
+        <h2>👥 Gestión de Usuarios</h2>
+        <div id="notifiers-list"></div>
+        <div id="pag-notifiersList" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:12px; flex-wrap:wrap;"></div>
+
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+        <h3 style="margin-bottom: 16px;" id="userFormTitle">➕ Agregar Usuario</h3>
+        <form id="notifierForm">
+          <input type="hidden" id="edit_user_id" value="">
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Nombre Completo *</label>
+              <input type="text" id="notifier_name" required placeholder="Carlos Gómez">
+            </div>
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" id="notifier_email" required placeholder="carlos@epen.com">
+            </div>
+            <div class="form-group">
+              <label>Contraseña <span id="passRequired">*</span></label>
+              <input type="password" id="notifier_password" placeholder="********">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Rol</label>
+              <select id="notifier_role">
+                <option value="notifier">Notificador</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Zona Asignada</label>
+              <select id="notifier_zone">
+                <option value="">Sin zona específica</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn btn-primary" id="userSubmitBtn">➕ Crear Usuario</button>
+            <button type="button" class="btn" onclick="cancelEditUser()" id="userCancelBtn" style="display:none;background:#999;color:#fff;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Panel: Carga Manual -->
+    <div id="create-panel" class="panel">
+      <div class="card">
+        <h2>➕ Cargar Notificación Manual</h2>
+        <form id="createForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>👤 Nombre del Ciudadano *</label>
+              <input type="text" id="citizen_name" required placeholder="Juan Pérez">
+            </div>
+            <div class="form-group">
+              <label>📞 Teléfono</label>
+              <input type="tel" id="citizen_phone" placeholder="+54 9 299 456-7890">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>📍 Dirección Completa *</label>
+            <input type="text" id="address" required placeholder="Av. Argentina 1234, Neuquén Capital">
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>🌍 Latitud</label>
+              <input type="number" step="0.0001" id="latitude" placeholder="-38.9516">
+            </div>
+            <div class="form-group">
+              <label>🌍 Longitud</label>
+              <input type="number" step="0.0001" id="longitude" placeholder="-68.0591">
+            </div>
+            <div class="form-group">
+              <label>🏷️ Zona</label>
+              <input type="text" id="zona" placeholder="NEUQUEN CAPITAL">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">✓ Crear Notificación</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- fin mainPanel -->
+
+  <!-- Modal: Detalle -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📋 Detalle de Notificación</h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Notificación -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>✏️ Editar Notificación</h2>
+        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+      </div>
+      <form id="editNotifForm" onsubmit="saveEditNotif(event)">
+        <input type="hidden" id="edit_notif_id">
+        <div class="form-row">
+          <div class="form-group"><label>Ciudadano *</label><input type="text" id="edit_citizen_name" required></div>
+          <div class="form-group"><label>Teléfono</label><input type="text" id="edit_citizen_phone"></div>
+        </div>
+        <div class="form-group"><label>Dirección *</label><input type="text" id="edit_address" required></div>
+        <div class="form-row-3">
+          <div class="form-group"><label>Nro. Orden</label><input type="text" id="edit_nro_orden"></div>
+          <div class="form-group"><label>Suministro</label><input type="text" id="edit_suministro"></div>
+          <div class="form-group"><label>Nro. Cliente</label><input type="text" id="edit_nro_cliente"></div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group"><label>Tipo Notificación</label><input type="text" id="edit_tipo_notificacion"></div>
+          <div class="form-group"><label>Cronograma</label><input type="text" id="edit_nro_cronograma"></div>
+          <div class="form-group"><label>Zona</label><input type="text" id="edit_zona"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Correo</label><input type="text" id="edit_correo"></div>
+          <div class="form-group"><label>Sucursal</label><input type="text" id="edit_sucursal"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+          <button type="button" class="btn" style="background:#999;color:#fff;" onclick="closeEditModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ============= AUTENTICACIÓN =============
+    let authToken = localStorage.getItem('epen_token') || '';
+
+    function doLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+      const errDiv = document.getElementById('loginError');
+      errDiv.style.display = 'none';
+
+      fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass })
+      })
+      .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
+      .then(({ ok, data }) => {
+        if (!ok || !data.token) {
+          errDiv.textContent = data.error || 'Credenciales inválidas';
+          errDiv.style.display = 'block';
+          return;
+        }
+        if (data.user.role !== 'admin') {
+          errDiv.textContent = 'Acceso denegado: se requiere rol admin';
+          errDiv.style.display = 'block';
+          return;
+        }
+        authToken = data.token;
+        localStorage.setItem('epen_token', authToken);
+        localStorage.setItem('epen_user', JSON.stringify(data.user));
+        showMainPanel(data.user);
+      })
+      .catch(() => {
+        errDiv.textContent = 'Error de conexión';
+        errDiv.style.display = 'block';
+      });
+    }
+
+    function doLogout() {
+      authToken = '';
+      localStorage.removeItem('epen_token');
+      localStorage.removeItem('epen_user');
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('mainPanel').style.display = 'none';
+    }
+
+    function showMainPanel(user) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainPanel').style.display = 'block';
+      document.getElementById('adminName').textContent = user.name || user.email;
+      loadDashboard();
+    }
+
+    // Helper para fetch autenticado
+    function authFetch(url, opts = {}) {
+      opts.headers = { ...opts.headers, 'Authorization': `Bearer ${authToken}` };
+      return fetch(url, opts).then(r => {
+        if (r.status === 401) { doLogout(); throw new Error('Sesión expirada'); }
+        return r;
+      });
+    }
+
+    // Auto-login si hay token guardado
+    (function checkSession() {
+      if (authToken) {
+        authFetch('/api/notifications/stats')
+          .then(r => { if (r.ok) { showMainPanel(JSON.parse(localStorage.getItem('epen_user') || '{}')); } else doLogout(); })
+          .catch(() => doLogout());
+      }
+    })();
+
+    // ============= ESTADO GLOBAL =============
+    let notifications = [];
+    let notifiers = [];
+    let currentPage = 1;
+    let pageSize = 20;
+
+    // Per-section pagination state
+    const pagState = {
+      importBatches: { page: 1, size: 20 },
+      dashImports: { page: 1, size: 10 },
+      assignPending: { page: 1, size: 20 },
+      recorridos: { page: 1, size: 20 },
+      recorridoDetail: { page: 1, size: 20 },
+      notifiersList: { page: 1, size: 20 },
+    };
+
+    function renderPaginatedTable(rows, headHtml, rowFn, tbodyOrContainer, pagCtrlId, stateKey, colCount) {
+      const st = pagState[stateKey];
+      const totalPages = Math.ceil(rows.length / st.size);
+      if (st.page > totalPages && totalPages > 0) st.page = totalPages;
+      const start = (st.page - 1) * st.size;
+      const pageData = rows.slice(start, start + st.size);
+
+      let html = '';
+      if (typeof tbodyOrContainer === 'string') {
+        // It's a container div — render full table
+        if (rows.length === 0) {
+          document.getElementById(tbodyOrContainer).innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>Sin datos</p></div>`;
+          if (pagCtrlId) document.getElementById(pagCtrlId).innerHTML = '';
+          return;
+        }
+        html = `<table>${headHtml}<tbody>${pageData.map(rowFn).join('')}</tbody></table>`;
+        document.getElementById(tbodyOrContainer).innerHTML = html;
+      } else {
+        // It's a tbody element id
+        if (rows.length === 0) {
+          document.getElementById(tbodyOrContainer).innerHTML = `<tr><td colspan="${colCount||6}"><div class="empty-state"><p>Sin datos</p></div></td></tr>`;
+          if (pagCtrlId) document.getElementById(pagCtrlId).innerHTML = '';
+          return;
+        }
+        document.getElementById(tbodyOrContainer).innerHTML = pageData.map(rowFn).join('');
+      }
+
+      if (!pagCtrlId) return;
+      const ctrl = document.getElementById(pagCtrlId);
+      if (!ctrl) return;
+      const pageSel = `<select onchange="pagState['${stateKey}'].size=parseInt(this.value);pagState['${stateKey}'].page=1;refreshSection('${stateKey}')" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px;">
+        ${[10,20,50,100].map(s => `<option value="${s}" ${s===st.size?'selected':''}>${s} por pág</option>`).join('')}
+      </select>`;
+      {
+        let p = `<span style="font-size:12px;color:#666;">${rows.length} resultados | Pág ${st.page}/${totalPages || 1}</span>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['${stateKey}'].page=1;refreshSection('${stateKey}')" ${st.page<=1?'disabled':''}>&laquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['${stateKey}'].page=${st.page-1};refreshSection('${stateKey}')" ${st.page<=1?'disabled':''}>&lsaquo;</button>`;
+        if (totalPages > 0) {
+          const sp = Math.max(1, st.page - 2), ep = Math.min(totalPages, st.page + 2);
+          for (let i = sp; i <= ep; i++) {
+            p += `<button class="btn btn-sm" style="background:${i===st.page?'#2e7d32':'#e0e0e0'};color:${i===st.page?'#fff':'#333'};" onclick="pagState['${stateKey}'].page=${i};refreshSection('${stateKey}')">${i}</button>`;
+          }
+        }
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['${stateKey}'].page=${st.page+1};refreshSection('${stateKey}')" ${st.page>=totalPages?'disabled':''}>&rsaquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['${stateKey}'].page=${totalPages};refreshSection('${stateKey}')" ${st.page>=totalPages?'disabled':''}>&raquo;</button>`;
+        p += pageSel;
+        ctrl.innerHTML = p;
+      }
+    }
+
+    // Cached data for re-pagination without refetch
+    let _cache = {};
+
+    function refreshSection(key) {
+      if (key === 'importBatches') renderImportBatchesTable(_cache.importBatches || []);
+      else if (key === 'dashImports') renderDashImportsTable(_cache.dashImports || []);
+      else if (key === 'assignPending') renderAssignPendingTable(_cache.assignPending || []);
+      else if (key === 'recorridos') renderRecorridosTable(_cache.recorridos || []);
+      else if (key === 'recorridoDetail') renderRecorridoDetailTable(_cache.recorridoDetail || []);
+      else if (key === 'notifiersList') renderNotifiersTable(_cache.notifiersList || []);
+    }
+
+    // ============= RENDER HELPERS FOR PAGINATED TABLES =============
+    function renderImportBatchesTable(batches) {
+      _cache.importBatches = batches;
+      renderPaginatedTable(batches,
+        '<thead><tr><th>ID</th><th>Archivo</th><th>Cronograma</th><th>Correo</th><th>Sucursal</th><th>Registros</th><th>Procesados</th><th>Fecha</th></tr></thead>',
+        b => `<tr><td>#${b.id}</td><td>${b.filename}</td><td>${b.nro_cronograma}</td><td>${b.correo}</td><td>${b.sucursal}</td><td>${b.actual_records}</td><td>${b.processed}/${b.actual_records}</td><td>${formatDate(b.imported_at)}</td></tr>`,
+        'import-batches-list', 'pag-importBatches', 'importBatches', 8
+      );
+    }
+
+    function renderDashImportsTable(batches) {
+      _cache.dashImports = batches;
+      renderPaginatedTable(batches,
+        '<thead><tr><th>ID</th><th>Archivo</th><th>Cronograma</th><th>Correo</th><th>Registros</th><th>Fecha</th></tr></thead>',
+        b => `<tr><td>#${b.id}</td><td>${b.filename}</td><td>${b.nro_cronograma}</td><td>${b.correo}</td><td>${b.actual_records}/${b.total_records}</td><td>${formatDate(b.imported_at)}</td></tr>`,
+        'import-history', 'pag-dashImports', 'dashImports', 6
+      );
+    }
+
+    function renderAssignPendingTable(pending) {
+      _cache.assignPending = pending;
+      const st = pagState.assignPending;
+      const totalPages = Math.ceil(pending.length / st.size);
+      if (st.page > totalPages && totalPages > 0) st.page = totalPages;
+      const start = (st.page - 1) * st.size;
+      const pageData = pending.slice(start, start + st.size);
+      const tbody = document.getElementById('pending-notifications-table');
+      if (pending.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No hay notificaciones pendientes</p></div></td></tr>`;
+        document.getElementById('pag-assignPending').innerHTML = '';
+        return;
+      }
+      tbody.innerHTML = pageData.map(n => `<tr>
+        <td class="checkbox-cell"><input type="checkbox" value="${n.id}" class="notif-checkbox"></td>
+        <td>${n.nro_orden || '-'}</td>
+        <td>${n.citizen_name}</td>
+        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${n.address || '-'}</td>
+        <td><span class="zone-badge">${n.zona || '-'}</span></td>
+      </tr>`).join('');
+      // Render pagination using the generic helper's pagination part
+      const ctrl = document.getElementById('pag-assignPending');
+      const pageSel = `<select onchange="pagState['assignPending'].size=parseInt(this.value);pagState['assignPending'].page=1;refreshSection('assignPending')" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px;">
+        ${[10,20,50,100].map(s => `<option value="${s}" ${s===st.size?'selected':''}>${s} por pág</option>`).join('')}
+      </select>`;
+      {
+        let p = `<span style="font-size:12px;color:#666;">${pending.length} pendientes | Pág ${st.page}/${totalPages || 1}</span>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['assignPending'].page=1;refreshSection('assignPending')" ${st.page<=1?'disabled':''}>&laquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['assignPending'].page=${st.page-1};refreshSection('assignPending')" ${st.page<=1?'disabled':''}>&lsaquo;</button>`;
+        if (totalPages > 0) { const sp = Math.max(1, st.page-2), ep = Math.min(totalPages, st.page+2);
+        for (let i = sp; i <= ep; i++) p += `<button class="btn btn-sm" style="background:${i===st.page?'#2e7d32':'#e0e0e0'};color:${i===st.page?'#fff':'#333'};" onclick="pagState['assignPending'].page=${i};refreshSection('assignPending')">${i}</button>`; }
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['assignPending'].page=${st.page+1};refreshSection('assignPending')" ${st.page>=totalPages?'disabled':''}>&rsaquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['assignPending'].page=${totalPages};refreshSection('assignPending')" ${st.page>=totalPages?'disabled':''}>&raquo;</button>`;
+        p += pageSel;
+        ctrl.innerHTML = p;
+      }
+    }
+
+    function renderRecorridosTable(data) {
+      _cache.recorridos = data;
+      renderPaginatedTable(data,
+        '<thead><tr><th>Notificador</th><th>Email</th><th>Zona</th><th>Zonas asignadas</th><th>Pendientes</th><th>En curso</th><th>Completadas</th><th>Total</th><th></th></tr></thead>',
+        r => `<tr>
+          <td><strong>${r.name}</strong></td>
+          <td>${r.email}</td>
+          <td>${r.zone || '-'}</td>
+          <td>${r.zonas ? r.zonas.split(',').map(z => '<span class="zone-badge">' + z + '</span>').join(' ') : '-'}</td>
+          <td style="text-align:center;color:#e65100;">${r.pendientes || 0}</td>
+          <td style="text-align:center;color:#1565c0;">${r.en_curso || 0}</td>
+          <td style="text-align:center;color:#2e7d32;">${r.completadas || 0}</td>
+          <td style="text-align:center;"><strong>${r.total || 0}</strong></td>
+          <td>${r.total > 0 ? `<button class="action-btn btn-view" onclick="viewRecorrido(${r.notifier_id}, '${r.name}')">Ver detalle</button>` : ''}</td>
+        </tr>`,
+        'recorridos-list', 'pag-recorridos', 'recorridos', 9
+      );
+    }
+
+    function renderRecorridoDetailTable(data) {
+      _cache.recorridoDetail = data;
+      const st = pagState.recorridoDetail;
+      const totalPages = Math.ceil(data.length / st.size);
+      if (st.page > totalPages && totalPages > 0) st.page = totalPages;
+      const start = (st.page - 1) * st.size;
+      const pageData = data.slice(start, start + st.size);
+      const tbody = document.querySelector('#recorrido-detail-table tbody');
+      tbody.innerHTML = pageData.map(n => `
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" value="${n.id}"></td>
+          <td>${n.nro_orden || '-'}</td>
+          <td>${n.citizen_name}</td>
+          <td>${n.address || '-'}</td>
+          <td>${n.zona ? '<span class="zone-badge">' + n.zona + '</span>' : '-'}</td>
+          <td><span class="status-badge status-${n.status}">${n.status === 'pending' ? 'PENDIENTE' : n.status === 'in_progress' ? 'EN CURSO' : 'COMPLETADA'}</span></td>
+        </tr>
+      `).join('');
+      const ctrl = document.getElementById('pag-recorridoDetail');
+      const pageSel = `<select onchange="pagState['recorridoDetail'].size=parseInt(this.value);pagState['recorridoDetail'].page=1;refreshSection('recorridoDetail')" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px;">
+        ${[10,20,50,100].map(s => `<option value="${s}" ${s===st.size?'selected':''}>${s} por pág</option>`).join('')}
+      </select>`;
+      {
+        let p = `<span style="font-size:12px;color:#666;">${data.length} notificaciones | Pág ${st.page}/${totalPages || 1}</span>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['recorridoDetail'].page=1;refreshSection('recorridoDetail')" ${st.page<=1?'disabled':''}>&laquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['recorridoDetail'].page=${st.page-1};refreshSection('recorridoDetail')" ${st.page<=1?'disabled':''}>&lsaquo;</button>`;
+        if (totalPages > 0) { const sp = Math.max(1, st.page-2), ep = Math.min(totalPages, st.page+2);
+        for (let i = sp; i <= ep; i++) p += `<button class="btn btn-sm" style="background:${i===st.page?'#2e7d32':'#e0e0e0'};color:${i===st.page?'#fff':'#333'};" onclick="pagState['recorridoDetail'].page=${i};refreshSection('recorridoDetail')">${i}</button>`; }
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['recorridoDetail'].page=${st.page+1};refreshSection('recorridoDetail')" ${st.page>=totalPages?'disabled':''}>&rsaquo;</button>`;
+        p += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="pagState['recorridoDetail'].page=${totalPages};refreshSection('recorridoDetail')" ${st.page>=totalPages?'disabled':''}>&raquo;</button>`;
+        p += pageSel;
+        ctrl.innerHTML = p;
+      }
+    }
+
+    function renderNotifiersTable(list) {
+      _cache.notifiersList = list;
+      renderPaginatedTable(list,
+        '<thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Zona</th><th>Pend.</th><th>Compl.</th><th>Acciones</th></tr></thead>',
+        n => `<tr>
+          <td><strong>${n.name}</strong></td>
+          <td>${n.email}</td>
+          <td><span class="status-badge status-${n.role === 'admin' ? 'completed' : 'pending'}">${n.role === 'admin' ? 'ADMIN' : 'NOTIFICADOR'}</span></td>
+          <td>${n.zone ? '<span class="zone-badge">' + n.zone + '</span>' : '-'}</td>
+          <td style="text-align:center;color:#e65100;">${n.pending_count}</td>
+          <td style="text-align:center;color:#2e7d32;">${n.completed_count}</td>
+          <td>
+            <button class="action-btn btn-view" onclick="editUser(${n.id})" title="Editar">✏️</button>
+            <button class="action-btn btn-delete" onclick="deleteNotifier(${n.id})" title="Eliminar">🗑️</button>
+          </td>
+        </tr>`,
+        'notifiers-list', 'pag-notifiersList', 'notifiersList', 7
+      );
+    }
+
+    // ============= NAVEGACIÓN =============
+    function switchTab(tab, el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      if (el) {
+        el.classList.add('active');
+      } else {
+        // Find the tab button by matching onclick
+        document.querySelectorAll('.tab').forEach(t => {
+          if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + tab + "'")) {
+            t.classList.add('active');
+          }
+        });
+      }
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(`${tab}-panel`).classList.add('active');
+
+      if (tab === 'dashboard') loadDashboard();
+      if (tab === 'import') loadImportBatches();
+      if (tab === 'list') loadNotifications();
+      if (tab === 'assign') loadAssignmentPanel();
+      if (tab === 'recorridos') loadRecorridos();
+      if (tab === 'notifiers') loadNotifiers();
+    }
+
+    // ============= ALERTAS =============
+    function showAlert(message, type = 'success') {
+      const el = type === 'success' ? document.getElementById('alertSuccess') : document.getElementById('alertError');
+      el.textContent = message;
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 5000);
+    }
+
+    // ============= DASHBOARD =============
+    async function loadDashboard() {
+      try {
+        const [statsRes, recentRes, batchesRes] = await Promise.all([
+          authFetch('/api/notifications/stats'),
+          authFetch('/api/notifications?limit=5'),
+          authFetch('/api/import/batches')
+        ]);
+
+        const stats = await statsRes.json();
+        const recent = await recentRes.json();
+        const batches = await batchesRes.json();
+
+        document.getElementById('stat-total').textContent = stats.total || 0;
+        document.getElementById('stat-pending').textContent = stats.pending || 0;
+        document.getElementById('stat-completed').textContent = stats.completed || 0;
+        document.getElementById('stat-imports').textContent = batches.length || 0;
+
+        const container = document.getElementById('recent-notifications');
+        if (recent.length === 0) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>No hay notificaciones. Importá un listado PDF para empezar.</p></div>`;
+        } else {
+          container.innerHTML = `<table><thead><tr><th>ID</th><th>Nro Orden</th><th>Cliente</th><th>Zona</th><th>Estado</th></tr></thead><tbody>
+            ${recent.map(n => `<tr><td>#${n.id}</td><td>${n.nro_orden || '-'}</td><td>${n.citizen_name}</td><td><span class="zone-badge">${n.zona || '-'}</span></td><td><span class="status-badge status-${n.status}">${getStatusText(n.status)}</span></td></tr>`).join('')}
+          </tbody></table>`;
+        }
+
+        renderDashImportsTable(batches);
+      } catch (error) {
+        console.error('Error cargando dashboard:', error);
+      }
+    }
+
+    // ============= IMPORTAR PDF =============
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type === 'application/pdf') {
+        document.getElementById('pdfFile').files = files;
+        uploadPDF();
+      } else {
+        showAlert('Solo se aceptan archivos PDF', 'error');
+      }
+    });
+
+    async function uploadPDF() {
+      const fileInput = document.getElementById('pdfFile');
+      if (!fileInput.files[0]) return;
+
+      document.getElementById('uploadProgress').style.display = 'block';
+      document.getElementById('importResult').style.display = 'none';
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await authFetch('/api/import/pdf', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        document.getElementById('uploadProgress').style.display = 'none';
+
+        if (!response.ok) throw new Error(result.error);
+
+        const resultDiv = document.getElementById('importResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+          <div class="import-result">
+            <h3 style="margin-bottom: 12px; color: #155724;">✅ Importación Exitosa</h3>
+            <div style="margin-bottom: 16px;">
+              <span class="import-stat" style="background: #e8f5e9; color: #2e7d32;">📦 Batch #${result.batch_id}</span>
+              <span class="import-stat" style="background: #d4edda; color: #155724;">✅ Insertados: ${result.inserted}</span>
+              <span class="import-stat" style="background: #fff3cd; color: #856404;">⚠️ Duplicados: ${result.duplicates}</span>
+              <span class="import-stat" style="background: #d1ecf1; color: #0c5460;">📊 Total parseados: ${result.total_parsed}</span>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <strong>Cronograma:</strong> ${result.metadata.nro_cronograma} |
+              <strong>Correo:</strong> ${result.metadata.correo} |
+              <strong>Sucursal:</strong> ${result.metadata.sucursal}
+            </div>
+            ${result.records_preview.length > 0 ? `
+              <h4 style="margin-bottom: 8px;">Vista previa (primeros ${result.records_preview.length}):</h4>
+              <table>
+                <thead><tr><th>Nro Orden</th><th>Sum.</th><th>Cliente</th><th>Domicilio</th><th>Zona</th></tr></thead>
+                <tbody>
+                  ${result.records_preview.map(r => `<tr><td>${r.nro_orden}</td><td>${r.suministro}</td><td>${r.citizen_name}</td><td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${r.address}</td><td><span class="zone-badge">${r.zona || '-'}</span></td></tr>`).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
+        `;
+
+        showAlert(`✅ ${result.inserted} notificaciones importadas del cronograma ${result.metadata.nro_cronograma}`, 'success');
+        fileInput.value = '';
+        loadImportBatches();
+      } catch (error) {
+        document.getElementById('uploadProgress').style.display = 'none';
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function loadImportBatches() {
+      try {
+        const response = await authFetch('/api/import/batches');
+        const batches = await response.json();
+
+        renderImportBatchesTable(batches);
+      } catch (error) {
+        console.error('Error cargando batches:', error);
+      }
+    }
+
+    // ============= NOTIFICACIONES =============
+    function goToListWithFilter(status) {
+      currentPage = 1;
+      switchTab('list');
+      document.getElementById('filterStatus').value = status;
+      loadNotifications();
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadNotifications();
+    }
+
+    function changePageSize(size) {
+      pageSize = parseInt(size);
+      currentPage = 1;
+      loadNotifications();
+    }
+
+    async function loadNotifications() {
+      try {
+        const response = await authFetch('/api/notifications');
+        notifications = await response.json();
+
+        // Cargar zonas para filtro
+        const zonesRes = await authFetch('/api/notifications/zones');
+        const zones = await zonesRes.json();
+        const filterZone = document.getElementById('filterZone');
+        const currentVal = filterZone.value;
+        filterZone.innerHTML = '<option value="">Todas las zonas</option>' +
+          zones.map(z => `<option value="${z.zona}" ${z.zona === currentVal ? 'selected' : ''}>${z.zona} (${z.count})</option>`).join('');
+
+        // Aplicar filtros
+        const statusFilter = document.getElementById('filterStatus').value;
+        const zoneFilter = document.getElementById('filterZone').value;
+        const searchFilter = (document.getElementById('filterSearch').value || '').toLowerCase().trim();
+        const sortFilter = document.getElementById('filterSort').value;
+
+        let filtered = notifications;
+        if (statusFilter === 'completed') {
+          filtered = filtered.filter(n => n.status === 'synced' || n.status === 'completed');
+        } else if (statusFilter) {
+          filtered = filtered.filter(n => n.status === statusFilter);
+        }
+        if (zoneFilter) filtered = filtered.filter(n => n.zona && n.zona.includes(zoneFilter));
+        if (searchFilter) {
+          filtered = filtered.filter(n =>
+            (n.citizen_name && n.citizen_name.toLowerCase().includes(searchFilter)) ||
+            (n.address && n.address.toLowerCase().includes(searchFilter)) ||
+            (n.nro_orden && n.nro_orden.toString().includes(searchFilter)) ||
+            (n.suministro && n.suministro.toString().includes(searchFilter))
+          );
+        }
+
+        // Ordenar
+        if (sortFilter === 'oldest') {
+          filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        } else if (sortFilter === 'newest') {
+          filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else if (sortFilter === 'name_asc') {
+          filtered.sort((a, b) => (a.citizen_name || '').localeCompare(b.citizen_name || ''));
+        } else if (sortFilter === 'name_desc') {
+          filtered.sort((a, b) => (b.citizen_name || '').localeCompare(a.citizen_name || ''));
+        }
+
+        const tbody = document.getElementById('notifications-table');
+        const pagCtrl = document.getElementById('pagination-controls');
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📭</div><p>No hay notificaciones</p></div></td></tr>`;
+          pagCtrl.innerHTML = '';
+        } else {
+          const totalPages = Math.ceil(filtered.length / pageSize);
+          if (currentPage > totalPages) currentPage = totalPages;
+          const start = (currentPage - 1) * pageSize;
+          const pageData = filtered.slice(start, start + pageSize);
+
+          tbody.innerHTML = pageData.map(n => `<tr>
+            <td><strong>#${n.id}</strong></td>
+            <td>${n.nro_orden || '-'}</td>
+            <td>${n.citizen_name}</td>
+            <td>${n.suministro || '-'}</td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(n.address || '').replace(/"/g, '&quot;')}">${n.address || '-'}</td>
+            <td><span class="zone-badge">${n.zona || '-'}</span></td>
+            <td><span class="status-badge status-${n.status}">${getStatusText(n.status)}</span></td>
+            <td style="font-size:12px;">${n.created_at ? formatDate(n.created_at) : '-'}</td>
+            <td>${n.notifier_id ? 'Asignado #' + n.notifier_id : '-'}</td>
+            <td>
+              <button class="action-btn btn-view" onclick="viewDetail(${n.id})">👁️</button>
+              <button class="action-btn btn-assign" onclick="editNotification(${n.id})">✏️</button>
+              <button class="action-btn btn-delete" onclick="deleteNotification(${n.id})">🗑️</button>
+            </td>
+          </tr>`).join('');
+
+          // Pagination controls
+          const pageSel = `<select onchange="changePageSize(this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px;">
+            ${[10,20,50,100].map(s => `<option value="${s}" ${s===pageSize?'selected':''}>${s} por pág</option>`).join('')}
+          </select>`;
+          {
+            let phtml = `<span style="font-size:12px;color:#666;">${filtered.length} resultados | Pág ${currentPage}/${totalPages || 1}</span>`;
+            phtml += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="changePage(1)" ${currentPage<=1?'disabled':''}>&laquo;</button>`;
+            phtml += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="changePage(${currentPage-1})" ${currentPage<=1?'disabled':''}>&lsaquo;</button>`;
+            if (totalPages > 0) {
+              const startP = Math.max(1, currentPage - 2);
+              const endP = Math.min(totalPages, currentPage + 2);
+              for (let i = startP; i <= endP; i++) {
+                phtml += `<button class="btn btn-sm" style="background:${i===currentPage?'#2e7d32':'#e0e0e0'};color:${i===currentPage?'#fff':'#333'};" onclick="changePage(${i})">${i}</button>`;
+              }
+            }
+            phtml += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="changePage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>&rsaquo;</button>`;
+            phtml += `<button class="btn btn-sm" style="background:#e0e0e0;color:#333;" onclick="changePage(${totalPages})" ${currentPage>=totalPages?'disabled':''}>&raquo;</button>`;
+            phtml += pageSel;
+            pagCtrl.innerHTML = phtml;
+          }
+        }
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    // ============= ASIGNACIÓN DE RECORRIDOS =============
+    async function loadAssignmentPanel() {
+      try {
+        const [zonesRes, notifiersRes, pendingRes] = await Promise.all([
+          authFetch('/api/notifications/zones'),
+          authFetch('/api/notifiers'),
+          authFetch('/api/notifications')
+        ]);
+
+        const zones = await zonesRes.json();
+        notifiers = await notifiersRes.json();
+        const allNotifications = await pendingRes.json();
+        const pending = allNotifications.filter(n => n.status === 'pending');
+
+        // Zona assignment list
+        const zoneContainer = document.getElementById('zone-assignment-list');
+        if (zones.length === 0) {
+          zoneContainer.innerHTML = `<div class="empty-state"><p>No hay zonas con notificaciones pendientes. Importá un listado primero.</p></div>`;
+        } else {
+          zoneContainer.innerHTML = zones.map(z => `
+            <div class="notifier-card">
+              <div class="notifier-info">
+                <h3>📍 ${z.zona}</h3>
+                <p>${z.count} notificaciones pendientes</p>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="zone-notifier-${z.zona.replace(/[^a-zA-Z0-9]/g, '_')}" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                  <option value="">Seleccionar notificador...</option>
+                  ${notifiers.map(n => `<option value="${n.id}">${n.name} ${n.zone ? '(' + n.zone + ')' : ''}</option>`).join('')}
+                </select>
+                <button class="btn btn-warning btn-sm" onclick="assignZone('${z.zona}')">📌 Asignar</button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Notifiers select for individual assignment
+        const assignSelect = document.getElementById('assignNotifier');
+        assignSelect.innerHTML = '<option value="">Seleccionar notificador...</option>' +
+          notifiers.map(n => `<option value="${n.id}">${n.name} ${n.zone ? '(' + n.zone + ')' : ''}</option>`).join('');
+
+        // Pending notifications table
+        renderAssignPendingTable(pending);
+      } catch (error) {
+        console.error('Error cargando panel de asignación:', error);
+      }
+    }
+
+    async function assignZone(zone) {
+      const selectId = `zone-notifier-${zone.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const notifierId = document.getElementById(selectId).value;
+
+      if (!notifierId) {
+        showAlert('Seleccioná un notificador primero', 'error');
+        return;
+      }
+
+      try {
+        const response = await authFetch('/api/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notifier_id: parseInt(notifierId), zone: zone })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        showAlert(`✅ ${result.assigned} notificaciones asignadas de zona "${zone}"`, 'success');
+        loadAssignmentPanel();
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    function toggleSelectAll() {
+      const checked = document.getElementById('selectAll').checked;
+      document.querySelectorAll('.notif-checkbox').forEach(cb => cb.checked = checked);
+    }
+
+    async function assignSelected() {
+      const notifierId = document.getElementById('assignNotifier').value;
+      if (!notifierId) {
+        showAlert('Seleccioná un notificador primero', 'error');
+        return;
+      }
+
+      const selectedIds = Array.from(document.querySelectorAll('.notif-checkbox:checked')).map(cb => parseInt(cb.value));
+      if (selectedIds.length === 0) {
+        showAlert('Seleccioná al menos una notificación', 'error');
+        return;
+      }
+
+      try {
+        const response = await authFetch('/api/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notifier_id: parseInt(notifierId), notification_ids: selectedIds })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        showAlert(`✅ ${result.assigned} notificaciones asignadas`, 'success');
+        loadAssignmentPanel();
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    // ============= NOTIFICADORES =============
+    // ============= GESTIÓN DE USUARIOS =============
+    async function loadNotifiers() {
+      try {
+        const [notifiersRes, zonesRes] = await Promise.all([
+          authFetch('/api/notifiers'),
+          authFetch('/api/zones')
+        ]);
+
+        notifiers = await notifiersRes.json();
+        const zones = await zonesRes.json();
+
+        renderNotifiersTable(notifiers);
+
+        // Cargar zonas en el select
+        const zoneSelect = document.getElementById('notifier_zone');
+        zoneSelect.innerHTML = '<option value="">Sin zona específica</option>' +
+          zones.map(z => `<option value="${z.name}">${z.name}</option>`).join('');
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      }
+    }
+
+    function editUser(id) {
+      const user = notifiers.find(n => n.id === id);
+      if (!user) return;
+      document.getElementById('edit_user_id').value = id;
+      document.getElementById('notifier_name').value = user.name;
+      document.getElementById('notifier_email').value = user.email;
+      document.getElementById('notifier_password').value = '';
+      document.getElementById('notifier_role').value = user.role;
+      document.getElementById('notifier_zone').value = user.zone || '';
+      document.getElementById('userFormTitle').textContent = '✏️ Editar Usuario: ' + user.name;
+      document.getElementById('userSubmitBtn').textContent = '💾 Guardar Cambios';
+      document.getElementById('userCancelBtn').style.display = 'inline-block';
+      document.getElementById('passRequired').textContent = '(dejar vacío para mantener)';
+      document.getElementById('notifier_password').removeAttribute('required');
+    }
+
+    function cancelEditUser() {
+      document.getElementById('edit_user_id').value = '';
+      document.getElementById('notifierForm').reset();
+      document.getElementById('userFormTitle').textContent = '➕ Agregar Usuario';
+      document.getElementById('userSubmitBtn').textContent = '➕ Crear Usuario';
+      document.getElementById('userCancelBtn').style.display = 'none';
+      document.getElementById('passRequired').textContent = '*';
+    }
+
+    document.getElementById('notifierForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('edit_user_id').value;
+      const body = {
+        name: document.getElementById('notifier_name').value,
+        email: document.getElementById('notifier_email').value,
+        role: document.getElementById('notifier_role').value,
+        zone: document.getElementById('notifier_zone').value
+      };
+      const pass = document.getElementById('notifier_password').value;
+      if (pass) body.password = pass;
+
+      try {
+        let response;
+        if (editId) {
+          response = await authFetch(`/api/notifiers/${editId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        } else {
+          if (!pass) { showAlert('La contraseña es obligatoria para usuarios nuevos', 'error'); return; }
+          body.password = pass;
+          response = await authFetch('/api/notifiers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        }
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        showAlert(editId ? 'Usuario actualizado' : 'Usuario creado', 'success');
+        cancelEditUser();
+        loadNotifiers();
+      } catch (error) {
+        showAlert(`Error: ${error.message}`, 'error');
+      }
+    });
+
+    async function deleteNotifier(id) {
+      if (!confirm('¿Eliminar este usuario? Sus notificaciones serán desasignadas.')) return;
+      try {
+        const response = await authFetch(`/api/notifiers/${id}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        showAlert('Usuario eliminado', 'success');
+        loadNotifiers();
+      } catch (error) {
+        showAlert(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    // ============= RECORRIDOS =============
+    let currentRecorridoNotifier = null;
+
+    async function loadRecorridos() {
+      try {
+        const res = await authFetch('/api/recorridos');
+        const data = await res.json();
+        renderRecorridosTable(data);
+        document.getElementById('recorrido-detail').style.display = 'none';
+      } catch (error) {
+        console.error('Error cargando recorridos:', error);
+      }
+    }
+
+    async function viewRecorrido(notifierId, name) {
+      currentRecorridoNotifier = notifierId;
+      try {
+        const res = await authFetch(`/api/recorridos/${notifierId}`);
+        const data = await res.json();
+        document.getElementById('recorrido-detail-title').textContent = '📍 Recorrido de ' + name + ` (${data.length} notificaciones)`;
+        pagState.recorridoDetail.page = 1;
+        renderRecorridoDetailTable(data);
+        document.getElementById('recorrido-detail').style.display = 'block';
+      } catch (error) {
+        showAlert('Error cargando detalle', 'error');
+      }
+    }
+
+    function toggleAllRecorrido(master) {
+      document.querySelectorAll('#recorrido-detail-table tbody input[type=checkbox]').forEach(cb => cb.checked = master.checked);
+    }
+
+    async function unassignSelected() {
+      const ids = [...document.querySelectorAll('#recorrido-detail-table tbody input[type=checkbox]:checked')].map(cb => parseInt(cb.value));
+      if (ids.length === 0) { showAlert('Selecciona notificaciones para desasignar', 'error'); return; }
+      if (!confirm(`¿Desasignar ${ids.length} notificaciones?`)) return;
+      try {
+        const res = await authFetch('/api/unassign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification_ids: ids })
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error);
+        showAlert(`${result.unassigned} notificaciones desasignadas`, 'success');
+        viewRecorrido(currentRecorridoNotifier, document.getElementById('recorrido-detail-title').textContent.split(' de ')[1]);
+        loadRecorridos();
+      } catch (error) {
+        showAlert(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function unassignAll() {
+      if (!confirm('¿Desasignar TODAS las notificaciones de este notificador?')) return;
+      try {
+        const res = await authFetch('/api/unassign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notifier_id: currentRecorridoNotifier })
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error);
+        showAlert(`${result.unassigned} notificaciones desasignadas`, 'success');
+        document.getElementById('recorrido-detail').style.display = 'none';
+        loadRecorridos();
+      } catch (error) {
+        showAlert(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    // ============= CREAR NOTIFICACIÓN MANUAL =============
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const response = await authFetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            citizen_name: document.getElementById('citizen_name').value,
+            citizen_phone: document.getElementById('citizen_phone').value,
+            address: document.getElementById('address').value,
+            latitude: parseFloat(document.getElementById('latitude').value) || null,
+            longitude: parseFloat(document.getElementById('longitude').value) || null
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        showAlert(`✅ Notificación creada (ID: ${result.id})`, 'success');
+        document.getElementById('createForm').reset();
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    });
+
+    // ============= DETALLE =============
+    async function viewDetail(id) {
+      try {
+        const response = await authFetch(`/api/notifications/${id}`);
+        const n = await response.json();
+
+        document.getElementById('modal-body').innerHTML = `
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">ID</div>
+              <div class="detail-value">#${n.id}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Estado</div>
+              <div class="detail-value"><span class="status-badge status-${n.status}">${getStatusText(n.status)}</span></div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Ciudadano</div>
+              <div class="detail-value">${n.citizen_name}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Teléfono</div>
+              <div class="detail-value">${n.citizen_phone || '-'}</div>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <div class="detail-label">Dirección</div>
+              <div class="detail-value">${n.address || '-'}</div>
+            </div>
+            ${n.nro_orden ? `
+              <div class="detail-item">
+                <div class="detail-label">Nro. Orden</div>
+                <div class="detail-value">${n.nro_orden}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Suministro</div>
+                <div class="detail-value">${n.suministro || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Nro. Cliente</div>
+                <div class="detail-value">${n.nro_cliente || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Tipo</div>
+                <div class="detail-value">${n.tipo_notificacion || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Cronograma</div>
+                <div class="detail-value">${n.nro_cronograma || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Zona</div>
+                <div class="detail-value"><span class="zone-badge">${n.zona || '-'}</span></div>
+              </div>
+            ` : ''}
+            ${n.latitude && n.longitude ? `
+              <div class="detail-item"><div class="detail-label">Latitud</div><div class="detail-value">${n.latitude}</div></div>
+              <div class="detail-item"><div class="detail-label">Longitud</div><div class="detail-value">${n.longitude}</div></div>
+            ` : ''}
+            ${n.token ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Token</div><div class="detail-value" style="font-family: monospace; font-size: 11px;">${n.token}</div></div>` : ''}
+            ${n.qr_code ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">QR</div><img src="${n.qr_code}" class="image-preview" alt="QR"></div>` : ''}
+            ${n.photo_path ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Foto</div><img src="${n.photo_path}" class="image-preview" alt="Foto"></div>` : ''}
+            ${n.signature_path ? `<div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Firma</div><div style="background:#fff; border:1px solid #ddd; border-radius:4px; padding:8px; text-align:center;"><img src="${n.signature_path}" style="max-width:100%; height:auto; max-height:200px;" alt="Firma"></div></div>` : ''}
+            <div class="detail-item"><div class="detail-label">SMS Enviado</div><div class="detail-value">${n.sms_sent ? '✅ Sí' : '❌ No'}</div></div>
+            <div class="detail-item"><div class="detail-label">Creado</div><div class="detail-value">${formatDate(n.created_at)}</div></div>
+          </div>
+          <div style="margin-top:16px; text-align:right;">
+            ${n.token ? `<a href="/verificar/${n.token}" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none;">📄 Ver Ficha Oficial</a>` : ''}
+          </div>
+        `;
+
+        document.getElementById('detailModal').classList.add('active');
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function editNotification(id) {
+      try {
+        const response = await authFetch(`/api/notifications/${id}`);
+        const n = await response.json();
+        document.getElementById('edit_notif_id').value = n.id;
+        document.getElementById('edit_citizen_name').value = n.citizen_name || '';
+        document.getElementById('edit_citizen_phone').value = n.citizen_phone || '';
+        document.getElementById('edit_address').value = n.address || '';
+        document.getElementById('edit_nro_orden').value = n.nro_orden || '';
+        document.getElementById('edit_suministro').value = n.suministro || '';
+        document.getElementById('edit_nro_cliente').value = n.nro_cliente || '';
+        document.getElementById('edit_tipo_notificacion').value = n.tipo_notificacion || '';
+        document.getElementById('edit_nro_cronograma').value = n.nro_cronograma || '';
+        document.getElementById('edit_zona').value = n.zona || '';
+        document.getElementById('edit_correo').value = n.correo || '';
+        document.getElementById('edit_sucursal').value = n.sucursal || '';
+        document.getElementById('editModal').classList.add('active');
+      } catch (error) {
+        showAlert('Error cargando notificación', 'error');
+      }
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+    }
+
+    async function saveEditNotif(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit_notif_id').value;
+      const body = {
+        citizen_name: document.getElementById('edit_citizen_name').value,
+        citizen_phone: document.getElementById('edit_citizen_phone').value,
+        address: document.getElementById('edit_address').value,
+        nro_orden: document.getElementById('edit_nro_orden').value,
+        suministro: document.getElementById('edit_suministro').value,
+        nro_cliente: document.getElementById('edit_nro_cliente').value,
+        tipo_notificacion: document.getElementById('edit_tipo_notificacion').value,
+        nro_cronograma: document.getElementById('edit_nro_cronograma').value,
+        zona: document.getElementById('edit_zona').value,
+        correo: document.getElementById('edit_correo').value,
+        sucursal: document.getElementById('edit_sucursal').value,
+      };
+      try {
+        const response = await authFetch(`/api/notifications/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        showAlert('Notificación actualizada', 'success');
+        closeEditModal();
+        loadNotifications();
+      } catch (error) {
+        showAlert(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function deleteNotification(id) {
+      if (!confirm('¿Eliminar esta notificación?')) return;
+      try {
+        await authFetch(`/api/notifications/${id}`, { method: 'DELETE' });
+        showAlert('✅ Eliminada', 'success');
+        loadNotifications();
+        loadDashboard();
+      } catch (error) {
+        showAlert(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('detailModal').classList.remove('active');
+    }
+
+    // ============= UTILIDADES =============
+    function getStatusText(status) {
+      return { 'pending': 'Pendiente', 'in_progress': 'En Progreso', 'synced': 'Completada', 'completed': 'Completada' }[status] || status;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      return new Date(dateString).toLocaleString('es-AR');
+    }
+
+    // ============= INIT =============
+    window.addEventListener('load', loadDashboard);
+
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target.id === 'detailModal') closeModal();
+    });
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target.id === 'editModal') closeEditModal();
+    });
+  </script>
+</body>
+</html>

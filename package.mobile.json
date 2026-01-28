@@ -1,0 +1,28 @@
+{
+  "name": "epen-notificaciones-app",
+  "version": "1.0.0",
+  "description": "App móvil para notificaciones presenciales EPEN Neuquén",
+  "main": "App.snack.jsx",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo-image-picker": "~15.0.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "notificaciones",
+    "epen",
+    "neuquen",
+    "firma-digital"
+  ],
+  "author": "EPEN Neuquén",
+  "license": "MIT"
+}
