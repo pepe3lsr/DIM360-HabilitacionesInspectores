@@ -437,13 +437,20 @@ const InspectionsScreen = ({ user, onSelectInspection, onProfile, onViewDetail }
     });
   }
 
+  const formatShortDate = (d) => {
+    if (!d) return '';
+    const dt = new Date(d);
+    return dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
   // Apply search
   if (searchText.trim()) {
     const q = searchText.toLowerCase();
     filtered = filtered.filter(n =>
-      (n.citizen_name && n.citizen_name.toLowerCase().includes(q)) ||
-      (n.address && n.address.toLowerCase().includes(q)) ||
-      (n.nro_orden && n.nro_orden.toString().includes(q)) ||
+      (n.nombre_comercio && n.nombre_comercio.toLowerCase().includes(q)) ||
+      (n.direccion && n.direccion.toLowerCase().includes(q)) ||
+      (n.numero_habilitacion && n.numero_habilitacion.toLowerCase().includes(q)) ||
+      (n.titular && n.titular.toLowerCase().includes(q)) ||
       (n.created_at && formatShortDate(n.created_at).includes(q))
     );
   }
@@ -453,12 +460,6 @@ const InspectionsScreen = ({ user, onSelectInspection, onProfile, onViewDetail }
     if (sortOrder === 'oldest') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
     return new Date(b.created_at || 0) - new Date(a.created_at || 0);
   });
-
-  const formatShortDate = (d) => {
-    if (!d) return '';
-    const dt = new Date(d);
-    return dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-  };
 
   return (
     <View style={styles.container}>
