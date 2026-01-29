@@ -28,7 +28,7 @@ El sistema se compone de tres módulos independientes que se comunican vía REST
                             ┌──────▼───────────┐
                             │  /api/resultados │
                             │  Integración     │
-                            │  DIM360 externo  │
+                            │  DIM360          │
                             └──────────────────┘
 ```
 
