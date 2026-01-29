@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "DIM360 Inspecciones",
+    "slug": "dim360-inspecciones",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0066ff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ar.gob.smt.dim360.inspecciones",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necesitamos acceso a la cámara para capturar fotos de los establecimientos durante las inspecciones.",
+        "NSLocationWhenInUseUsageDescription": "Necesitamos acceso a tu ubicación para registrar la geolocalización de las inspecciones.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a la galería para seleccionar fotos de los establecimientos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0066ff"
+      },
+      "package": "ar.gob.smt.dim360.inspecciones",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir acceso a la cámara para capturar fotos de inspecciones"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permitir acceso a la ubicación para geolocalizar inspecciones"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permitir acceso a la galería para seleccionar fotos"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
