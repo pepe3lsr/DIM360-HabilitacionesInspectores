@@ -63,7 +63,6 @@ El sistema se compone de tres módulos independientes que se comunican vía REST
   - Foto del establecimiento (cámara o galería)
   - Geolocalización automática (GPS)
   - Detalle/observaciones del inspector
-  - Firma ológrafa digital
 - **Confirmación** con token único y código QR de verificación
 
 ### API REST para Integración
