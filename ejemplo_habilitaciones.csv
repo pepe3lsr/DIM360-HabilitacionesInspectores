@@ -1,0 +1,16 @@
+numero_habilitacion,nombre_comercio,titular,cuit,direccion,rubro,tipo_habilitacion,zona
+HAB-2024-001,Panadería Don José,José María González,20-25678901-3,Av. Sarmiento 450,ALIMENTOS,COMERCIO,Distrito 1
+HAB-2024-002,Farmacia del Sol,María Elena Ruiz,27-30456789-1,San Martín 1234,FARMACIA,COMERCIO,Distrito 1
+HAB-2024-003,Restaurante El Tucumano,Carlos Alberto Paz,20-28765432-5,24 de Septiembre 890,GASTRONOMIA,COMERCIO,Distrito 2
+HAB-2024-004,Ferretería Industrial Norte,Roberto Fernández,20-22345678-9,Av. Mate de Luna 2100,FERRETERIA,COMERCIO,Distrito 5
+HAB-2024-005,Kiosco La Esquina,Ana Lucía Medina,27-35678901-2,Lamadrid 567,KIOSCO,COMERCIO,Distrito 1
+HAB-2024-006,Supermercado Familiar,Pedro Martínez e Hijos SRL,30-71234567-8,Av. Aconquija 1500,SUPERMERCADO,COMERCIO,Distrito 8
+HAB-2024-007,Taller Mecánico Express,Juan Carlos López,20-24567890-4,Av. Roca 3200,TALLER MECANICO,SERVICIOS,Distrito 10
+HAB-2024-008,Peluquería Estilo,Laura Patricia Sánchez,27-32456789-0,Mendoza 234,PELUQUERIA,SERVICIOS,Distrito 3
+HAB-2024-009,Librería Estudiantil,Miguel Ángel Torres,20-27890123-6,Junín 456,LIBRERIA,COMERCIO,Distrito 1
+HAB-2024-010,Carnicería Don Pedro,Pedro Ramón Acosta,20-26789012-7,Av. Belgrano 1890,ALIMENTOS,COMERCIO,Distrito 12
+HAB-2024-011,Gimnasio Power Fit,Fitness SMT SA,30-72345678-9,Av. Mate de Luna 3400,GIMNASIO,SERVICIOS,Distrito 5
+HAB-2024-012,Veterinaria Animal Care,Dra. Silvia Romero,27-29876543-2,Las Piedras 678,VETERINARIA,SERVICIOS,Distrito 4
+HAB-2024-013,Pizzería Napoli,Giuseppe Rossi,20-94567890-1,Crisóstomo Álvarez 123,GASTRONOMIA,COMERCIO,Distrito 2
+HAB-2024-014,Óptica Visual,Ópticas del Norte SRL,30-73456789-0,Maipú 890,OPTICA,COMERCIO,Distrito 1
+HAB-2024-015,Heladería Dolce,Helados Artesanales SAS,30-74567890-1,Av. Alem 567,HELADERIA,COMERCIO,Distrito 15

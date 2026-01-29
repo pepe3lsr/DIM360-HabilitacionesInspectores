@@ -19,74 +19,82 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API URL - Usar la IP local de tu PC (localhost no funciona desde el celular)
-const API_URL = 'http://192.168.1.77:3000';
+const API_URL = 'http://192.168.1.77:4000';
 const DEMO_MODE = false; // false = conecta al backend real
 
 // ============= DATOS DE PRUEBA =============
-const DEMO_NOTIFICATIONS = [
+const DEMO_INSPECTIONS = [
   {
     id: 1,
-    citizen_name: 'Juan Pérez',
-    address: 'Av. Argentina 1234, Neuquén Capital',
+    nombre_comercio: 'Panadería Don José',
+    direccion: 'Av. Sarmiento 450, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7890',
-    amount: '$15,000'
+    numero_habilitacion: 'HAB-2024-001',
+    titular: 'José María González',
+    cuit: '20-25678901-3',
+    rubro: 'ALIMENTOS',
+    tipo_habilitacion: 'COMERCIO',
+    zona: 'Distrito 1'
   },
   {
     id: 2,
-    citizen_name: 'María García',
-    address: 'Calle San Martín 567, Plottier',
+    nombre_comercio: 'Farmacia del Sol',
+    direccion: 'San Martín 1234, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7891',
-    amount: '$12,500'
+    numero_habilitacion: 'HAB-2024-002',
+    titular: 'María Elena Ruiz',
+    cuit: '27-30456789-1',
+    rubro: 'FARMACIA',
+    tipo_habilitacion: 'COMERCIO',
+    zona: 'Distrito 1'
   },
   {
     id: 3,
-    citizen_name: 'Carlos López',
-    address: 'Rivadavia 890, Centenario',
+    nombre_comercio: 'Restaurante El Tucumano',
+    direccion: '24 de Septiembre 890, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7892',
-    amount: '$8,750'
+    numero_habilitacion: 'HAB-2024-003',
+    titular: 'Carlos Alberto Paz',
+    cuit: '20-28765432-5',
+    rubro: 'GASTRONOMIA',
+    tipo_habilitacion: 'COMERCIO',
+    zona: 'Distrito 2'
   },
   {
     id: 4,
-    citizen_name: 'Ana Rodríguez',
-    address: 'Belgrano 234, Cutral-Có',
+    nombre_comercio: 'Ferretería Industrial Norte',
+    direccion: 'Av. Mate de Luna 2100, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7893',
-    amount: '$20,000'
+    numero_habilitacion: 'HAB-2024-004',
+    titular: 'Roberto Fernández',
+    cuit: '20-22345678-9',
+    rubro: 'FERRETERIA',
+    tipo_habilitacion: 'COMERCIO',
+    zona: 'Distrito 5'
   },
   {
     id: 5,
-    citizen_name: 'Roberto Fernández',
-    address: 'Av. Olascoaga 456, Neuquén Capital',
+    nombre_comercio: 'Kiosco La Esquina',
+    direccion: 'Lamadrid 567, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7894',
-    amount: '$9,500'
+    numero_habilitacion: 'HAB-2024-005',
+    titular: 'Ana Lucía Medina',
+    cuit: '27-35678901-2',
+    rubro: 'KIOSCO',
+    tipo_habilitacion: 'COMERCIO',
+    zona: 'Distrito 1'
   },
   {
     id: 6,
-    citizen_name: 'Laura Martínez',
-    address: 'Sarmiento 789, Villa La Angostura',
+    nombre_comercio: 'Taller Mecánico Express',
+    direccion: 'Av. Roca 3200, San Miguel de Tucumán',
     status: 'pending',
-    citizen_phone: '+54 9 299 456-7895',
-    amount: '$18,200'
-  },
-  {
-    id: 7,
-    citizen_name: 'Diego Gómez',
-    address: 'Mitre 123, San Martín de los Andes',
-    status: 'pending',
-    citizen_phone: '+54 9 299 456-7896',
-    amount: '$11,750'
-  },
-  {
-    id: 8,
-    citizen_name: 'Silvia Romero',
-    address: 'Córdoba 345, Zapala',
-    status: 'pending',
-    citizen_phone: '+54 9 299 456-7897',
-    amount: '$14,300'
+    numero_habilitacion: 'HAB-2024-006',
+    titular: 'Juan Carlos López',
+    cuit: '20-24567890-4',
+    rubro: 'TALLER MECANICO',
+    tipo_habilitacion: 'SERVICIOS',
+    zona: 'Distrito 10'
   },
 ];
 
@@ -247,7 +255,7 @@ const SignatureCanvas = ({ onSave, onClear, visible, onClose }) => {
 
 // ============= PANTALLA DE LOGIN =============
 const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState('notifier@example.com');
+  const [email, setEmail] = useState('inspector@example.com');
   const [password, setPassword] = useState('demo123');
   const [loading, setLoading] = useState(false);
 
@@ -270,8 +278,8 @@ const LoginScreen = ({ onLogin }) => {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Validar credenciales demo
-        if (email === 'notifier@example.com' && password === 'demo123') {
-          onLogin({ id: 1, email, role: 'notifier' });
+        if (email === 'inspector@example.com' && password === 'demo123') {
+          onLogin({ id: 1, email, role: 'inspector' });
         } else {
           throw new Error('Credenciales incorrectas');
         }
@@ -320,12 +328,12 @@ const LoginScreen = ({ onLogin }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://www.epen.gov.ar/wp-content/uploads/2024/02/Logo-EPEN.jpg' }}
+        source={{ uri: `${API_URL}/img/logo-dim360.png` }}
         style={{ width: '100%', height: 120, resizeMode: 'contain', borderRadius: 8, marginBottom: 18 }}
       />
       <View style={styles.loginHeader}>
-        <Text style={styles.title}>Sistema de Notificaciones</Text>
-        <Text style={styles.subtitle}>EPEN - Notificaciones Presenciales</Text>
+        <Text style={styles.title}>DIM360 - Inspecciones</Text>
+        <Text style={styles.subtitle}>Municipalidad de San Miguel de Tucumán</Text>
       </View>
 
       <View style={styles.loginForm}>
@@ -362,15 +370,15 @@ const LoginScreen = ({ onLogin }) => {
 
         <Text style={styles.infoText}>
           Credenciales demo:{'\n'}
-          notifier@example.com / demo123
+          inspector@example.com / demo123
         </Text>
       </View>
     </View>
   );
 };
 
-// ============= PANTALLA DE NOTIFICACIONES =============
-const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDetail }) => {
+// ============= PANTALLA DE INSPECCIONES =============
+const InspectionsScreen = ({ user, onSelectInspection, onProfile, onViewDetail }) => {
   const [allData, setAllData] = useState([]);
   const [viewMode, setViewMode] = useState('pending'); // 'pending' | 'completed'
   const [searchText, setSearchText] = useState('');
@@ -378,12 +386,12 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
   const [dateFilter, setDateFilter] = useState(''); // '' | 'today' | 'week' | 'month'
   const [loading, setLoading] = useState(!DEMO_MODE);
 
-  const loadNotifications = async (silent) => {
+  const loadInspections = async (silent) => {
     if (!silent) setLoading(true);
     try {
       if (DEMO_MODE) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        setAllData(DEMO_NOTIFICATIONS);
+        setAllData(DEMO_INSPECTIONS);
       } else {
         let token = global.__authToken || '';
         try { token = await AsyncStorage.getItem('token') || token; } catch(e) {}
@@ -393,13 +401,13 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
         });
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Error al cargar notificaciones');
+          throw new Error(data.error || 'Error al cargar inspecciones');
         }
         setAllData(data);
       }
     } catch (error) {
       if (!silent) {
-        Alert.alert('Error', error.message || 'No se pudieron cargar las notificaciones.');
+        Alert.alert('Error', error.message || 'No se pudieron cargar las inspecciones.');
       }
     } finally {
       setLoading(false);
@@ -407,7 +415,7 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
   };
 
   useEffect(() => {
-    loadNotifications(true);
+    loadInspections(true);
   }, []);
 
   const pendingList = allData.filter(n => n.status === 'pending' || n.status === 'in_progress');
@@ -455,12 +463,12 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://www.epen.gov.ar/wp-content/uploads/2024/02/Logo-EPEN.jpg' }}
+        source={{ uri: `${API_URL}/img/logo-dim360.png` }}
         style={{ width: '100%', height: 70, resizeMode: 'contain', borderRadius: 6, marginBottom: 14 }}
       />
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Mis Notificaciones</Text>
+          <Text style={styles.title}>Mis Inspecciones</Text>
           <Text style={styles.userInfo}>{user.email}</Text>
         </View>
         <TouchableOpacity onPress={onProfile} style={{ padding: 8 }}>
@@ -469,12 +477,12 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
       </View>
 
       <View style={styles.statsCard}>
-        <TouchableOpacity style={[styles.statItem, viewMode === 'pending' && { backgroundColor: '#e8f5e9', borderRadius: 8 }]} onPress={() => setViewMode('pending')}>
+        <TouchableOpacity style={[styles.statItem, viewMode === 'pending' && { backgroundColor: '#e6f0ff', borderRadius: 8 }]} onPress={() => setViewMode('pending')}>
           <Text style={styles.statNumber}>{pendingList.length}</Text>
           <Text style={styles.statLabel}>Pendientes</Text>
         </TouchableOpacity>
         <View style={styles.statDivider} />
-        <TouchableOpacity style={[styles.statItem, viewMode === 'completed' && { backgroundColor: '#e8f5e9', borderRadius: 8 }]} onPress={() => setViewMode('completed')}>
+        <TouchableOpacity style={[styles.statItem, viewMode === 'completed' && { backgroundColor: '#e6f0ff', borderRadius: 8 }]} onPress={() => setViewMode('completed')}>
           <Text style={styles.statNumber}>{completedList.length}</Text>
           <Text style={styles.statLabel}>Completadas</Text>
         </TouchableOpacity>
@@ -489,7 +497,7 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
       <View style={{ flexDirection: 'row', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
         {[['', 'Todas'], ['today', 'Hoy'], ['week', '7 días'], ['month', '30 días']].map(([val, label]) => (
           <TouchableOpacity key={val} onPress={() => setDateFilter(val)}
-            style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, backgroundColor: dateFilter === val ? '#2e7d32' : '#e0e0e0' }}>
+            style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, backgroundColor: dateFilter === val ? '#0066ff' : '#e0e0e0' }}>
             <Text style={{ fontSize: 11, color: dateFilter === val ? '#fff' : '#333', fontWeight: '600' }}>{label}</Text>
           </TouchableOpacity>
         ))}
@@ -497,65 +505,64 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' }}>
         <Text style={{ fontSize: 12, color: '#666' }}>{filtered.length} resultado(s)</Text>
         <TouchableOpacity onPress={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}>
-          <Text style={{ fontSize: 12, color: '#2e7d32', fontWeight: '600' }}>
+          <Text style={{ fontSize: 12, color: '#0066ff', fontWeight: '600' }}>
             {sortOrder === 'newest' ? 'Más recientes primero' : 'Más antiguas primero'}
           </Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#2e7d32" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#0066ff" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
           {filtered.length === 0 ? (
             <View style={{ alignItems: 'center', marginTop: 40 }}>
               <Text style={{ fontSize: 40 }}>📭</Text>
-              <Text style={{ color: '#999', marginTop: 8 }}>No hay notificaciones {viewMode === 'pending' ? 'pendientes' : 'completadas'}</Text>
+              <Text style={{ color: '#999', marginTop: 8 }}>No hay inspecciones {viewMode === 'pending' ? 'pendientes' : 'completadas'}</Text>
             </View>
-          ) : filtered.map((notif, index) => (
+          ) : filtered.map((insp, index) => (
             <View
-              key={notif.id}
+              key={insp.id}
               style={[
-                styles.notificationCard,
-                { borderLeftColor: viewMode === 'completed' ? '#388e3c' : (index % 2 === 0 ? '#2e7d32' : '#1b5e20') }
+                styles.inspectionCard,
+                { borderLeftColor: viewMode === 'completed' ? '#3385ff' : (index % 2 === 0 ? '#0066ff' : '#0052cc') }
               ]}
             >
-              <Text style={styles.cardTitle}>👤 {notif.citizen_name}</Text>
-              <Text style={styles.cardSubtitle}>📍 {notif.address}</Text>
+              <Text style={styles.cardTitle}>👤 {insp.nombre_comercio}</Text>
+              <Text style={styles.cardSubtitle}>📍 {insp.direccion}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                {notif.zona ? <Text style={{ fontSize: 10, backgroundColor: '#e8f5e9', color: '#2e7d32', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, fontWeight: '600' }}>{notif.zona}</Text> : null}
-                {notif.nro_orden ? <Text style={{ fontSize: 10, backgroundColor: '#f0f0f0', color: '#555', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}>Orden: {notif.nro_orden}</Text> : null}
-                {notif.suministro ? <Text style={{ fontSize: 10, backgroundColor: '#f0f0f0', color: '#555', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}>Sum: {notif.suministro}</Text> : null}
-                {notif.created_at ? <Text style={{ fontSize: 10, color: '#aaa' }}>Alta: {formatShortDate(notif.created_at)}</Text> : null}
+                {insp.zona ? <Text style={{ fontSize: 10, backgroundColor: '#e6f0ff', color: '#0066ff', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, fontWeight: '600' }}>{insp.zona}</Text> : null}
+                {insp.numero_habilitacion ? <Text style={{ fontSize: 10, backgroundColor: '#f0f0f0', color: '#555', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}>Hab: {insp.numero_habilitacion}</Text> : null}
+                {insp.titular ? <Text style={{ fontSize: 10, backgroundColor: '#f0f0f0', color: '#555', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}>Titular: {insp.titular}</Text> : null}
+                {insp.created_at ? <Text style={{ fontSize: 10, color: '#aaa' }}>Alta: {formatShortDate(insp.created_at)}</Text> : null}
               </View>
-              {notif.citizen_phone ? <Text style={styles.cardPhone}>📞 {notif.citizen_phone}</Text> : null}
               <View style={styles.cardFooter}>
-                <View style={[styles.statusBadge, viewMode === 'completed' && { backgroundColor: '#e8f5e9' }]}>
-                  <Text style={[styles.cardStatus, viewMode === 'completed' && { color: '#2e7d32' }]}>
+                <View style={[styles.statusBadge, viewMode === 'completed' && { backgroundColor: '#e6f0ff' }]}>
+                  <Text style={[styles.cardStatus, viewMode === 'completed' && { color: '#0066ff' }]}>
                     {viewMode === 'completed' ? '✅ Completada' : '⏳ Pendiente'}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   {onViewDetail && (
-                    <TouchableOpacity onPress={() => onViewDetail(notif)} style={{ backgroundColor: '#e8f5e9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}>
-                      <Text style={{ fontSize: 13, color: '#2e7d32', fontWeight: '600' }}>Info</Text>
+                    <TouchableOpacity onPress={() => onViewDetail(insp)} style={{ backgroundColor: '#e6f0ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 13, color: '#0066ff', fontWeight: '600' }}>Info</Text>
                     </TouchableOpacity>
                   )}
                   {viewMode === 'completed' && (
                     <TouchableOpacity onPress={() => {
-                      if (notif.token) {
-                        const url = `${API_URL}/verificar/${notif.token}`;
+                      if (insp.token) {
+                        const url = `${API_URL}/verificar/${insp.token}`;
                         if (typeof window !== 'undefined' && window.open) { window.open(url, '_blank'); }
-                        else { Alert.alert('Ficha Oficial', `Abrí este enlace en tu navegador:\n\n${url}`); }
+                        else { Alert.alert('Constancia', `Abrí este enlace en tu navegador:\n\n${url}`); }
                       } else {
                         // Token not in list cache — open detail screen which fetches fresh data
-                        onViewDetail(notif);
+                        onViewDetail(insp);
                       }
-                    }} style={{ backgroundColor: '#2e7d32', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}>
-                      <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600' }}>📄 Ficha</Text>
+                    }} style={{ backgroundColor: '#0066ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}>
+                      <Text style={{ fontSize: 13, color: '#fff', fontWeight: '600' }}>📄 Constancia</Text>
                     </TouchableOpacity>
                   )}
-                  {viewMode === 'pending' && <TouchableOpacity onPress={() => onSelectNotification(notif)}><Text style={styles.cardAction}>Notificar →</Text></TouchableOpacity>}
+                  {viewMode === 'pending' && <TouchableOpacity onPress={() => onSelectInspection(insp)}><Text style={styles.cardAction}>Inspeccionar →</Text></TouchableOpacity>}
                 </View>
               </View>
             </View>
@@ -563,7 +570,7 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
         </ScrollView>
       )}
 
-      <TouchableOpacity style={styles.refreshButton} onPress={loadNotifications}>
+      <TouchableOpacity style={styles.refreshButton} onPress={loadInspections}>
         <Text style={styles.refreshButtonText}>🔄 Refrescar Lista</Text>
       </TouchableOpacity>
     </View>
@@ -571,17 +578,16 @@ const NotificationsScreen = ({ user, onSelectNotification, onProfile, onViewDeta
 };
 
 // ============= PANTALLA DE CAPTURA =============
-const CaptureScreen = ({ notification, onSave, onBack }) => {
+const CaptureScreen = ({ inspection, onSave, onBack }) => {
   const [photo, setPhoto] = useState(null);
-  const [signature, setSignature] = useState(null);
+  const [detalle, setDetalle] = useState('');
   const [gps, setGps] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
 
   useEffect(() => {
-    // Validar que notification existe
-    if (!notification) {
-      Alert.alert('Error', 'No se recibió información de la notificación');
+    // Validar que inspection existe
+    if (!inspection) {
+      Alert.alert('Error', 'No se recibió información de la inspección');
       onBack();
       return;
     }
@@ -597,7 +603,7 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
           const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
           setGps({ lat: loc.coords.latitude, lng: loc.coords.longitude });
         } else {
-          Alert.alert('GPS', 'Se necesita acceso a la ubicación para registrar la geolocalización. No podrás enviar la notificación sin GPS.');
+          Alert.alert('GPS', 'Se necesita acceso a la ubicación para registrar la geolocalización.');
         }
       } catch (e) {
         console.log('Error GPS:', e);
@@ -608,12 +614,11 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
 
   const requestPermissions = async () => {
     try {
-      // Solicitar permisos de cámara
       const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
       if (!cameraPermission.granted) {
         Alert.alert(
           '⚠️ Permisos necesarios',
-          'Se necesita acceso a la cámara para tomar fotos del domicilio'
+          'Se necesita acceso a la cámara para tomar fotos del establecimiento'
         );
       }
     } catch (error) {
@@ -623,7 +628,6 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
 
   const handlePhotoCapture = async () => {
     try {
-      // Verificar permisos
       const permission = await ImagePicker.getCameraPermissionsAsync();
       if (!permission.granted) {
         const request = await ImagePicker.requestCameraPermissionsAsync();
@@ -633,7 +637,6 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
         }
       }
 
-      // Abrir la cámara
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -651,22 +654,9 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
     }
   };
 
-  const handleSignatureCapture = () => {
-    setShowSignatureModal(true);
-  };
-
-  const handleSignatureSave = (signatureData) => {
-    setSignature(signatureData);
-    Alert.alert('✅ Éxito', 'Firma capturada correctamente');
-  };
-
-  const handleSignatureClear = () => {
-    setSignature(null);
-  };
-
   const handleSubmit = async () => {
-    if (!photo || !signature || !gps) {
-      Alert.alert('⚠️ Advertencia', 'Debes completar foto, firma y GPS');
+    if (!photo || !gps) {
+      Alert.alert('⚠️ Advertencia', 'Debes completar foto y GPS');
       return;
     }
 
@@ -676,7 +666,7 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
       let token = global.__authToken || '';
       try { token = await AsyncStorage.getItem('token') || token; } catch(e) {}
 
-      // Convertir foto a base64 si es una URI local
+      // Convertir foto a base64
       let photo_base64 = null;
       if (photo) {
         try {
@@ -696,7 +686,7 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
         }
       }
 
-      const response = await fetch(`${API_URL}/api/notifications/${notification.id}/capture`, {
+      const response = await fetch(`${API_URL}/api/inspections/${inspection.id}/capture`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -704,9 +694,9 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
         },
         body: JSON.stringify({
           photo_base64: photo_base64,
-          signature_base64: signature,
           gps_lat: gps.lat,
           gps_lng: gps.lng,
+          detalle: detalle,
         }),
       });
 
@@ -717,28 +707,28 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al enviar la notificación');
+        throw new Error(data.error || 'Error al enviar la inspección');
       }
 
-      Alert.alert('Notificacion registrada', 'La notificacion fue registrada correctamente');
+      Alert.alert('Inspección registrada', 'La inspección fue registrada correctamente');
       onSave(data);
     } catch (error) {
-      Alert.alert('Error', error.message || 'No se pudo enviar la notificación');
+      Alert.alert('Error', error.message || 'No se pudo enviar la inspección');
     } finally {
       setLoading(false);
     }
   };
 
-  const canSubmit = photo && signature && gps;
+  const canSubmit = photo && gps;
 
   // Validación de seguridad
-  if (!notification) {
+  if (!inspection) {
     return (
       <View style={styles.container}>
         <View style={styles.errorCard}>
           <Text style={styles.errorEmoji}>⚠️</Text>
           <Text style={styles.errorTitle}>Error</Text>
-          <Text style={styles.errorText}>No hay datos de notificación</Text>
+          <Text style={styles.errorText}>No hay datos de inspección</Text>
         </View>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Volver</Text>
@@ -748,22 +738,14 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
   }
 
   return (
-    <>
-      <SignatureCanvas
-        visible={showSignatureModal}
-        onSave={handleSignatureSave}
-        onClear={handleSignatureClear}
-        onClose={() => setShowSignatureModal(false)}
-      />
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <Text style={styles.title}>📋 Captura de Inspección</Text>
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>📋 Captura de Notificación</Text>
-
-        <View style={styles.citizenCard}>
-          <Text style={styles.citizenName}>{notification.citizen_name || 'Sin nombre'}</Text>
-          <Text style={styles.citizenAddress}>{notification.address || 'Sin dirección'}</Text>
-          <Text style={styles.citizenAmount}>Monto: {notification.amount || '$0'}</Text>
-        </View>
+      <View style={styles.citizenCard}>
+        <Text style={styles.citizenName}>{inspection.nombre_comercio || 'Sin nombre'}</Text>
+        <Text style={styles.citizenAddress}>{inspection.direccion || 'Sin dirección'}</Text>
+        <Text style={styles.citizenAmount}>Hab. N°: {inspection.numero_habilitacion || '-'}</Text>
+      </View>
 
       <View style={styles.captureSection}>
         <View style={styles.sectionHeader}>
@@ -782,7 +764,7 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
 
       <View style={styles.captureSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📸 Fotografía del Domicilio</Text>
+          <Text style={styles.sectionTitle}>📸 Fotografía del Establecimiento</Text>
           <Text style={photo ? styles.statusComplete : styles.statusPending}>
             {photo ? '✓' : '⏳'}
           </Text>
@@ -804,19 +786,17 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
 
       <View style={styles.captureSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>✍️ Firma del Ciudadano</Text>
-          <Text style={signature ? styles.statusComplete : styles.statusPending}>
-            {signature ? '✓' : '⏳'}
-          </Text>
+          <Text style={styles.sectionTitle}>📝 Observaciones</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.button, signature && styles.buttonComplete]}
-          onPress={handleSignatureCapture}
-        >
-          <Text style={styles.buttonText}>
-            {signature ? '✓ Firma Capturada - Recapturar' : '✍️ Capturar Firma'}
-          </Text>
-        </TouchableOpacity>
+        <TextInput
+          style={styles.detalleInput}
+          placeholder="Escribe observaciones o detalles de la inspección..."
+          placeholderTextColor="#999"
+          multiline
+          numberOfLines={4}
+          value={detalle}
+          onChangeText={setDetalle}
+        />
       </View>
 
       <TouchableOpacity
@@ -825,22 +805,21 @@ const CaptureScreen = ({ notification, onSave, onBack }) => {
         disabled={loading || !canSubmit}
       >
         <Text style={styles.submitButtonText}>
-          {loading ? '📤 Enviando...' : '✓ Enviar Notificación y SMS'}
+          {loading ? '📤 Enviando...' : '✓ Registrar Inspección'}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backButtonText}>← Volver</Text>
       </TouchableOpacity>
-      </ScrollView>
-    </>
+    </ScrollView>
   );
 };
 
 // ============= PANTALLA DE CONFIRMACIÓN =============
 const ConfirmationScreen = ({ data, onBack }) => {
   // Validación de datos
-  if (!data || !data.token) {
+  if (!data || !data.success) {
     return (
       <View style={styles.container}>
         <View style={styles.errorCard}>
@@ -849,7 +828,7 @@ const ConfirmationScreen = ({ data, onBack }) => {
           <Text style={styles.errorText}>No se recibieron los datos de confirmación</Text>
         </View>
         <TouchableOpacity style={styles.doneButton} onPress={onBack}>
-          <Text style={styles.doneButtonText}>← Volver a Notificaciones</Text>
+          <Text style={styles.doneButtonText}>← Volver a Inspecciones</Text>
         </TouchableOpacity>
       </View>
     );
@@ -859,70 +838,45 @@ const ConfirmationScreen = ({ data, onBack }) => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.successHeader}>
         <Text style={styles.successEmoji}>✅</Text>
-        <Text style={styles.successTitle}>¡Notificación Registrada!</Text>
+        <Text style={styles.successTitle}>¡Inspección Registrada!</Text>
         <Text style={styles.successSubtitle}>
-          Ciudadano: {data.citizen_name || 'N/A'}
+          {data.nombre_comercio || 'Comercio'}
         </Text>
         <Text style={styles.timestamp}>{data.timestamp || new Date().toLocaleString('es-AR')}</Text>
       </View>
 
       <View style={styles.tokenCard}>
-        <Text style={styles.tokenLabel}>🔐 Token de Verificación</Text>
-        <Text style={styles.tokenValue}>
-          {data.token ? data.token.substring(0, 20) + '...' : 'Token no disponible'}
+        <Text style={styles.tokenLabel}>📍 Dirección</Text>
+        <Text style={styles.tokenValue}>{data.direccion || '-'}</Text>
+      </View>
+
+      <View style={styles.successMessageCard}>
+        <Text style={styles.successMessageText}>
+          La inspección ha sido registrada correctamente con la geolocalización y documentación fotográfica.
         </Text>
-        <Text style={styles.tokenHint}>Este token garantiza la autenticidad</Text>
-      </View>
-
-      <View style={styles.qrSection}>
-        <Text style={styles.sectionTitle}>📱 Código QR de Verificación</Text>
-        <View style={styles.qrContainer}>
-          {data.qr_url ? (
-            <Image
-              source={{ uri: data.qr_url }}
-              style={styles.qrImage}
-              onError={() => console.log('Error cargando QR')}
-            />
-          ) : (
-            <View style={[styles.qrImage, { backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' }]}>
-              <Text style={{ color: '#999' }}>QR no disponible</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.qrHint}>Escanea para verificar la notificación</Text>
-      </View>
-
-      <View style={styles.linkSection}>
-        <Text style={styles.sectionTitle}>💳 Link de Pago (enviado por SMS)</Text>
-        <View style={styles.linkCard}>
-          <Text style={styles.linkText} numberOfLines={3}>
-            {data.payment_link || 'Link no disponible'}
-          </Text>
-        </View>
-        <Text style={styles.smsHint}>📲 SMS enviado al ciudadano</Text>
       </View>
 
       <TouchableOpacity style={styles.doneButton} onPress={onBack}>
-        <Text style={styles.doneButtonText}>← Volver a Notificaciones</Text>
+        <Text style={styles.doneButtonText}>← Volver a Inspecciones</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-// ============= PANTALLA DE DETALLE DE NOTIFICACIÓN =============
-const NotificationDetailScreen = ({ notification, onBack, onCapture }) => {
-  const [n, setN] = useState(notification);
+// ============= PANTALLA DE DETALLE DE INSPECCIÓN =============
+const InspectionDetailScreen = ({ inspection, onBack, onCapture }) => {
+  const [n, setN] = useState(inspection);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Fetch fresh data from server to get token and latest fields
+  // Fetch fresh data from server
   useEffect(() => {
-    if (!DEMO_MODE && notification && notification.id) {
+    if (!DEMO_MODE && inspection && inspection.id) {
       (async () => {
         setLoadingDetail(true);
         try {
           let token = global.__authToken || '';
           try { token = await AsyncStorage.getItem('token') || token; } catch(e) {}
-          const res = await fetch(`${API_URL}/api/notifications/${notification.id}`, {
+          const res = await fetch(`${API_URL}/api/inspections/${inspection.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
@@ -936,7 +890,7 @@ const NotificationDetailScreen = ({ notification, onBack, onCapture }) => {
         }
       })();
     }
-  }, [notification]);
+  }, [inspection]);
 
   const formatDate = (d) => {
     if (!d) return '-';
@@ -947,32 +901,30 @@ const NotificationDetailScreen = ({ notification, onBack, onCapture }) => {
   const openFicha = () => {
     const url = `${API_URL}/verificar/${n.token}`;
     if (typeof window !== 'undefined' && window.open) { window.open(url, '_blank'); }
-    else { Alert.alert('Ficha Oficial', `Abrí este enlace en tu navegador:\n\n${url}`); }
+    else { Alert.alert('Constancia', `Abrí este enlace en tu navegador:\n\n${url}`); }
   };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Detalle de Notificación</Text>
+      <Text style={styles.title}>Detalle de Inspección</Text>
 
       <View style={styles.citizenCard}>
-        <Text style={styles.citizenName}>{n.citizen_name || '-'}</Text>
-        <Text style={styles.citizenAddress}>{n.address || '-'}</Text>
-        {n.citizen_phone ? <Text style={styles.cardPhone}>📞 {n.citizen_phone}</Text> : null}
+        <Text style={styles.citizenName}>{n.nombre_comercio || '-'}</Text>
+        <Text style={styles.citizenAddress}>{n.direccion || '-'}</Text>
+        {n.numero_habilitacion ? <Text style={styles.cardPhone}>📋 Hab. N°: {n.numero_habilitacion}</Text> : null}
       </View>
 
       <View style={{ backgroundColor: '#fff', padding: 16, borderRadius: 10, marginBottom: 16 }}>
-        <Text style={{ fontWeight: '600', color: '#333', marginBottom: 10, fontSize: 15 }}>Datos EPEN</Text>
+        <Text style={{ fontWeight: '600', color: '#333', marginBottom: 10, fontSize: 15 }}>Datos de la Habilitación</Text>
         {[
-          ['Nro. Orden', n.nro_orden],
-          ['Suministro', n.suministro],
-          ['Nro. Cliente', n.nro_cliente],
-          ['Tipo', n.tipo_notificacion],
-          ['Cronograma', n.nro_cronograma],
+          ['Nro. Habilitación', n.numero_habilitacion],
+          ['Titular', n.titular],
+          ['CUIT', n.cuit],
+          ['Rubro', n.rubro],
+          ['Tipo Habilitación', n.tipo_habilitacion],
           ['Zona', n.zona],
-          ['Sucursal', n.sucursal],
-          ['Correo', n.correo],
           ['Fecha Alta', formatDate(n.created_at)],
-          ['Estado', isPending ? 'Pendiente' : 'Completada'],
+          ['Estado', isPending ? 'Pendiente' : 'Inspeccionada'],
         ].map(([label, value]) => value ? (
           <View key={label} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
             <Text style={{ fontSize: 13, color: '#888' }}>{label}</Text>
@@ -983,20 +935,20 @@ const NotificationDetailScreen = ({ notification, onBack, onCapture }) => {
 
       {isPending && onCapture && (
         <TouchableOpacity style={styles.submitButton} onPress={() => onCapture(n)}>
-          <Text style={styles.submitButtonText}>Notificar →</Text>
+          <Text style={styles.submitButtonText}>Inspeccionar →</Text>
         </TouchableOpacity>
       )}
       {!isPending && n.token && (
-        <TouchableOpacity style={[styles.submitButton, { backgroundColor: '#1b5e20' }]} onPress={openFicha}>
-          <Text style={styles.submitButtonText}>📄 Ver Ficha Oficial / PDF</Text>
+        <TouchableOpacity style={[styles.submitButton, { backgroundColor: '#0052cc' }]} onPress={openFicha}>
+          <Text style={styles.submitButtonText}>📄 Ver Constancia</Text>
         </TouchableOpacity>
       )}
       {!isPending && !n.token && !loadingDetail && (
         <View style={{ backgroundColor: '#fff3cd', padding: 14, borderRadius: 8, marginTop: 16 }}>
-          <Text style={{ fontSize: 13, color: '#856404', textAlign: 'center' }}>La ficha oficial no está disponible para esta notificación</Text>
+          <Text style={{ fontSize: 13, color: '#856404', textAlign: 'center' }}>La constancia no está disponible para esta inspección</Text>
         </View>
       )}
-      {loadingDetail && <ActivityIndicator size="small" color="#2e7d32" style={{ marginTop: 16 }} />}
+      {loadingDetail && <ActivityIndicator size="small" color="#0066ff" style={{ marginTop: 16 }} />}
 
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Text style={styles.backButtonText}>← Volver</Text>
@@ -1011,12 +963,12 @@ const ProfileScreen = ({ user, onBack, onLogout }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Mi Perfil</Text>
 
-      <View style={[styles.citizenCard, { borderLeftColor: '#2e7d32', marginTop: 20 }]}>
+      <View style={[styles.citizenCard, { borderLeftColor: '#0066ff', marginTop: 20 }]}>
         <Text style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>👤</Text>
         <Text style={styles.citizenName}>{user.name || user.email}</Text>
         <Text style={styles.citizenAddress}>{user.email}</Text>
-        <Text style={{ fontSize: 14, color: '#2e7d32', marginTop: 8, fontWeight: '600' }}>
-          Rol: {user.role === 'admin' ? 'Administrador' : 'Notificador'}
+        <Text style={{ fontSize: 14, color: '#0066ff', marginTop: 8, fontWeight: '600' }}>
+          Rol: {user.role === 'admin' ? 'Administrador' : 'Inspector'}
         </Text>
       </View>
 
@@ -1035,14 +987,14 @@ const ProfileScreen = ({ user, onBack, onLogout }) => {
 export default function App() {
   const [user, setUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('login');
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedInspection, setSelectedInspection] = useState(null);
   const [confirmationData, setConfirmationData] = useState(null);
 
   useEffect(() => {
     if (!user) {
       setCurrentScreen('login');
     } else {
-      setCurrentScreen('notifications');
+      setCurrentScreen('inspections');
     }
   }, [user]);
 
@@ -1057,48 +1009,48 @@ export default function App() {
     <View style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
       {!user ? (
         <LoginScreen onLogin={setUser} />
-      ) : currentScreen === 'notifications' ? (
-        <NotificationsScreen
+      ) : currentScreen === 'inspections' ? (
+        <InspectionsScreen
           user={user}
-          onSelectNotification={(notif) => {
-            setSelectedNotification(notif);
+          onSelectInspection={(insp) => {
+            setSelectedInspection(insp);
             setCurrentScreen('capture');
           }}
-          onViewDetail={(notif) => {
-            setSelectedNotification(notif);
+          onViewDetail={(insp) => {
+            setSelectedInspection(insp);
             setCurrentScreen('detail');
           }}
           onProfile={() => setCurrentScreen('profile')}
         />
       ) : currentScreen === 'detail' ? (
-        <NotificationDetailScreen
-          notification={selectedNotification}
-          onBack={() => setCurrentScreen('notifications')}
-          onCapture={(notif) => {
-            setSelectedNotification(notif);
+        <InspectionDetailScreen
+          inspection={selectedInspection}
+          onBack={() => setCurrentScreen('inspections')}
+          onCapture={(insp) => {
+            setSelectedInspection(insp);
             setCurrentScreen('capture');
           }}
         />
       ) : currentScreen === 'capture' ? (
         <CaptureScreen
-          notification={selectedNotification}
+          inspection={selectedInspection}
           onSave={(data) => {
             setConfirmationData(data);
             setCurrentScreen('confirmation');
           }}
-          onBack={() => setCurrentScreen('notifications')}
+          onBack={() => setCurrentScreen('inspections')}
         />
       ) : currentScreen === 'profile' ? (
         <ProfileScreen
           user={user}
-          onBack={() => setCurrentScreen('notifications')}
+          onBack={() => setCurrentScreen('inspections')}
           onLogout={handleLogout}
         />
       ) : (
         <ConfirmationScreen
           data={confirmationData}
           onBack={() => {
-            setCurrentScreen('notifications');
+            setCurrentScreen('inspections');
             setConfirmationData(null);
           }}
         />
@@ -1133,7 +1085,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 2,
-    borderBottomColor: '#2e7d32',
+    borderBottomColor: '#0066ff',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -1206,7 +1158,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#0066ff',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -1223,7 +1175,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   submitButton: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#0066ff',
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
@@ -1246,7 +1198,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   doneButton: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#0066ff',
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
@@ -1297,7 +1249,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#388e3c',
+    color: '#3385ff',
   },
   statLabel: {
     fontSize: 12,
@@ -1307,7 +1259,7 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
-  notificationCard: {
+  inspectionCard: {
     backgroundColor: '#fff',
     padding: 16,
     marginBottom: 12,
@@ -1334,7 +1286,7 @@ const styles = StyleSheet.create({
   cardAmount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2e7d32',
+    color: '#0066ff',
   },
   cardSubtitle: {
     fontSize: 14,
@@ -1343,7 +1295,7 @@ const styles = StyleSheet.create({
   },
   cardPhone: {
     fontSize: 14,
-    color: '#2e7d32',
+    color: '#0066ff',
     marginTop: 4,
   },
   cardFooter: {
@@ -1365,7 +1317,7 @@ const styles = StyleSheet.create({
   },
   cardAction: {
     fontSize: 14,
-    color: '#2e7d32',
+    color: '#0066ff',
     fontWeight: '600',
   },
   citizenCard: {
@@ -1374,7 +1326,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 24,
     borderLeftWidth: 5,
-    borderLeftColor: '#2e7d32',
+    borderLeftColor: '#0066ff',
   },
   citizenName: {
     fontSize: 20,
@@ -1390,7 +1342,7 @@ const styles = StyleSheet.create({
   citizenAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2e7d32',
+    color: '#0066ff',
   },
   captureSection: {
     marginBottom: 24,
@@ -1401,7 +1353,7 @@ const styles = StyleSheet.create({
   },
   statusComplete: {
     fontSize: 20,
-    color: '#2e7d32',
+    color: '#0066ff',
   },
   dataCard: {
     backgroundColor: '#fff',
@@ -1411,7 +1363,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#ffc107',
   },
   dataCardComplete: {
-    borderLeftColor: '#2e7d32',
+    borderLeftColor: '#0066ff',
   },
   gpsText: {
     fontSize: 13,
@@ -1428,7 +1380,7 @@ const styles = StyleSheet.create({
   },
   successHeader: {
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
+    backgroundColor: '#e6f0ff',
     padding: 30,
     borderRadius: 12,
     marginBottom: 24,
@@ -1440,17 +1392,17 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1b5e20',
+    color: '#0052cc',
     marginBottom: 8,
   },
   successSubtitle: {
     fontSize: 16,
-    color: '#1b5e20',
+    color: '#0052cc',
     marginBottom: 4,
   },
   timestamp: {
     fontSize: 12,
-    color: '#1b5e20',
+    color: '#0052cc',
     marginTop: 8,
   },
   tokenCard: {
@@ -1459,7 +1411,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 24,
     borderLeftWidth: 5,
-    borderLeftColor: '#2e7d32',
+    borderLeftColor: '#0066ff',
   },
   tokenLabel: {
     fontSize: 13,
@@ -1512,17 +1464,17 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 11,
-    color: '#2e7d32',
+    color: '#0066ff',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   smsHint: {
     fontSize: 12,
-    color: '#2e7d32',
+    color: '#0066ff',
     textAlign: 'center',
     fontWeight: '600',
   },
   successText: {
-    color: '#2e7d32',
+    color: '#0066ff',
     fontWeight: '600',
     marginTop: 8,
     fontSize: 13,
@@ -1577,7 +1529,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#388e3c',
+    borderColor: '#3385ff',
     borderStyle: 'dashed',
     marginVertical: 20,
     position: 'relative',
@@ -1602,7 +1554,7 @@ const styles = StyleSheet.create({
   },
   signatureSaveButton: {
     flex: 1,
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#0066ff',
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -1618,5 +1570,29 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
+  },
+  detalleInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    fontSize: 15,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  successMessageCard: {
+    backgroundColor: '#e6f0ff',
+    padding: 20,
+    borderRadius: 12,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: '#0066ff',
+  },
+  successMessageText: {
+    fontSize: 14,
+    color: '#0052cc',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

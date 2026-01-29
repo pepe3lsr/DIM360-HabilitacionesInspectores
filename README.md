@@ -1,10 +1,10 @@
-# EPEN - Sistema de Notificaciones Presenciales
+# DIM360 - Sistema de Inspecciones de Habilitaciones
 
 <p align="center">
-  <img src="https://www.epen.gov.ar/wp-content/uploads/2024/02/Logo-EPEN.jpg" alt="EPEN Logo" width="300">
+  <img src="public/img/logo-dim360.png" alt="DIM360 Logo" width="300">
 </p>
 
-Sistema completo de notificaciones presenciales para el **Ente Provincial de Energía del Neuquén (EPEN)**. Permite gestionar todo el ciclo de vida de una notificación: importación masiva, asignación a notificadores, ejecución en campo con captura de evidencia georeferenciada (foto, GPS, firma digital), generación de constancia oficial con QR de verificación, y envío de SMS al ciudadano.
+Sistema completo de inspecciones de habilitaciones comerciales para la **Dirección de Ingresos Municipales (DIM)** de la **Municipalidad de San Miguel de Tucumán**. Permite gestionar todo el ciclo de vida de una inspección: importación masiva desde CSV, asignación a inspectores, ejecución en campo con captura de evidencia georeferenciada (foto, GPS, detalle, firma ológrafa), generación de constancia oficial con QR de verificación.
 
 ---
 
@@ -24,6 +24,12 @@ El sistema se compone de tres módulos independientes que se comunican vía REST
                             │  Constancia      │
                             │  pública + QR    │
                             └──────────────────┘
+                                   │
+                            ┌──────▼───────────┐
+                            │  /api/resultados │
+                            │  Integración     │
+                            │  DIM360 externo  │
+                            └──────────────────┘
 ```
 
 | Componente | Tecnología | Archivo principal |
@@ -31,7 +37,7 @@ El sistema se compone de tres módulos independientes que se comunican vía REST
 | Backend / API REST | Node.js + Express + SQLite | `server.js` |
 | Panel de Administración | HTML5 + CSS3 + JS vanilla | `public/admin.html` |
 | App Móvil | React Native (Expo Snack SDK 54) | `App.snack.jsx` |
-| Base de Datos | SQLite (archivo `data/epen.db`) | Auto-generada |
+| Base de Datos | SQLite (archivo `data/dim.db`) | Auto-generada |
 
 ---
 
@@ -39,262 +45,189 @@ El sistema se compone de tres módulos independientes que se comunican vía REST
 
 ### Panel de Administración (`/admin.html`)
 
-- **Dashboard** con estadísticas en tiempo real (total, pendientes, completadas, notificadores activos)
-- **Importación masiva** desde archivos CSV con campos EPEN (nro_orden, suministro, nro_cliente, tipo, cronograma, zona, sucursal, correo)
-- **Asignación** de notificaciones a notificadores por zona o selección individual
-- **Desasignación** individual, múltiple o total por notificador
-- **Recorridos**: seguimiento del progreso de cada notificador con detalle de notificaciones asignadas
-- **Gestión de usuarios**: alta, edición y baja de notificadores con zona asignada
-- **Edición de registros**: corrección de datos importados (nombre, dirección, zona, etc.)
-- **Listado de notificaciones** con filtros por estado, zona y búsqueda por texto
-- **Paginación** en todas las tablas con selector de registros por página (10/20/50/100), navegación primera/anterior/siguiente/última
-- **Exportación CSV** del listado de notificaciones
+- **Dashboard** con estadísticas en tiempo real (total, pendientes, completadas, inspectores activos)
+- **Importación masiva** desde archivos CSV con campos de habilitaciones
+- **Asignación** de inspecciones a inspectores por zona o selección individual
+- **Desasignación** individual, múltiple o total por inspector
+- **Recorridos**: seguimiento del progreso de cada inspector con detalle de inspecciones asignadas
+- **Gestión de usuarios**: alta, edición y baja de inspectores con zona asignada
+- **Edición de registros**: corrección de datos importados
+- **Listado de inspecciones** con filtros por estado, zona y búsqueda por texto
+- **Paginación** en todas las tablas
 
-### App Móvil (Notificador)
+### App Móvil (React Native / Expo)
 
-- **Login** con autenticación JWT
-- **Listado** de notificaciones pendientes y completadas con contadores
-- **Filtros** por fecha (Hoy, 7 días, 30 días), búsqueda por nombre/dirección/nro. orden, y ordenamiento
-- **Captura de notificación**:
-  - Foto del domicilio (cámara real del dispositivo)
-  - Geolocalización GPS (alta precisión)
-  - Firma digital táctil del ciudadano (canvas SVG)
-- **Detalle** completo de cada notificación con todos los campos EPEN
-- **Ficha oficial**: acceso directo a la constancia de verificación desde notificaciones completadas
-- **Pantalla de confirmación** con token de verificación y código QR
-- **Modo demo** para testing sin backend
+- **Autenticación** con JWT
+- **Listado** de inspecciones asignadas con filtros (pendientes/completadas)
+- **Captura de inspección**:
+  - Foto del establecimiento (cámara o galería)
+  - Geolocalización automática (GPS)
+  - Detalle/observaciones del inspector
+  - Firma ológrafa digital
+- **Confirmación** con token único y código QR de verificación
 
-### Verificación Pública (`/verificar/:token`)
+### API REST para Integración
 
-- Página HTML accesible sin autenticación
-- Constancia oficial con encabezado EPEN
-- Datos completos: notificación, ciudadano, geolocalización, foto, firma
-- **Fecha y hora de notificación** en zona horaria Argentina (UTC-3)
-- Token de verificación y código QR
-- Diseño optimizado para impresión (PDF desde navegador)
+El sistema expone un endpoint para integración con el sistema DIM360 externo:
+
+```
+GET /api/resultados
+```
+
+Devuelve las inspecciones completadas con todos los datos de captura.
 
 ---
 
-## Inicio Rápido
+## Formato del CSV de Importación
+
+```csv
+numero_habilitacion,nombre_comercio,titular,cuit,direccion,rubro,tipo_habilitacion,zona
+12345,COMERCIO ABC,JUAN PEREZ,20-12345678-9,AV SARMIENTO 123,ALIMENTOS,COMERCIO,CENTRO
+```
+
+### Campos:
+
+| Campo | Descripción | Obligatorio |
+|-------|-------------|-------------|
+| numero_habilitacion | Número de habilitación municipal | No |
+| nombre_comercio | Nombre del establecimiento | Sí |
+| titular | Nombre del titular | No |
+| cuit | CUIT del titular | No |
+| direccion | Dirección completa | Sí |
+| rubro | Rubro comercial | No |
+| tipo_habilitacion | Tipo de habilitación | No |
+| zona | Zona de la ciudad | No |
+
+---
+
+## Instalación
 
 ### Requisitos
 
-- Node.js >= 16.0.0
-- npm >= 8.0.0
+- Node.js 18+ (recomendado: 20 LTS)
+- npm o yarn
 
-### Instalación y ejecución
+### Pasos
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/pepe3lsr/notificadores.git
-cd notificadores
+git clone <repo-url>
+cd DIM-HabilitacionesInspectores
 
-# Instalar dependencias del backend
+# Instalar dependencias
 npm install
 
-# Iniciar el servidor (crea la BD automáticamente)
+# Iniciar el servidor
 node server.js
 ```
 
-El servidor arranca en `http://localhost:3000`.
+El servidor iniciará en `http://localhost:4000`
 
-### Accesos
+### Acceso
 
-| Recurso | URL | Credenciales |
-|---|---|---|
-| Panel Admin | http://localhost:3000/admin.html | admin / admin123 |
-| App Móvil (web) | Expo Snack (ver abajo) | notifier@example.com / demo123 |
-| Verificación pública | http://localhost:3000/verificar/:token | Sin autenticación |
-
-### App Móvil en Expo Snack
-
-1. Ir a [snack.expo.dev](https://snack.expo.dev)
-2. Copiar el contenido de `App.snack.jsx`
-3. Agregar dependencias: `expo-image-picker`, `expo-location`, `@react-native-async-storage/async-storage`, `react-native-svg`
-4. Cambiar `API_URL` a la IP local de tu PC (ej: `http://192.168.1.77:3000`)
-5. Escanear el QR con Expo Go en el celular
+- **Panel Admin**: http://localhost:4000/admin.html
+- **Usuario por defecto**: `admin@dim.gob.ar` / `admin123`
 
 ---
 
-## API REST
+## Estructura del Proyecto
+
+```
+DIM-HabilitacionesInspectores/
+├── server.js              # Backend principal
+├── App.snack.jsx          # App móvil React Native
+├── public/
+│   ├── admin.html         # Panel de administración
+│   └── img/
+│       └── logo-dim360.png # Logo del sistema
+├── data/
+│   ├── dim.db            # Base de datos SQLite
+│   └── captures/         # Fotos y firmas capturadas
+├── uploads/              # Archivos CSV temporales
+├── package.json
+└── README.md
+```
+
+---
+
+## API Endpoints
 
 ### Autenticación
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| POST | `/auth/login` | - | Login (devuelve JWT + user) |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/auth/login` | Autenticación con JWT |
 
-### Notificaciones (Admin)
+### Inspecciones
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| GET | `/api/notifications` | Admin | Listar todas las notificaciones (con nombre de notificador) |
-| GET | `/api/notifications/:id` | Token | Detalle de una notificación |
-| POST | `/api/notifications` | Admin | Crear notificación individual |
-| PUT | `/api/notifications/:id` | Admin | Editar campos de una notificación |
-| DELETE | `/api/notifications/:id` | Admin | Eliminar notificación |
-| GET | `/api/notifications/zones` | Admin | Listar zonas con conteos |
-| GET | `/api/notifications/stats` | Admin | Estadísticas generales |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/inspections` | Listar inspecciones |
+| GET | `/api/inspections/:id` | Obtener inspección por ID |
+| POST | `/api/inspections` | Crear inspección manual |
+| PUT | `/api/inspections/:id` | Editar inspección |
+| DELETE | `/api/inspections/:id` | Eliminar inspección |
+| GET | `/api/inspections/stats` | Estadísticas |
+| GET | `/api/inspections/zones` | Zonas disponibles |
+| POST | `/api/inspections/:id/capture` | Guardar captura de inspección |
 
-### Importación
+### Inspectores
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| POST | `/import/csv` | - | Importar notificaciones desde CSV |
-| GET | `/api/import/batches` | Admin | Listar lotes de importación |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/inspectors` | Listar inspectores |
+| POST | `/api/inspectors` | Crear inspector |
+| PUT | `/api/inspectors/:id` | Editar inspector |
+| DELETE | `/api/inspectors/:id` | Eliminar inspector |
 
 ### Asignación
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| POST | `/api/assign` | Admin | Asignar notificaciones (por zona o IDs) |
-| POST | `/api/unassign` | Admin | Desasignar notificaciones |
-| GET | `/api/zones` | Admin | Listar zonas disponibles |
-| POST | `/api/zones` | Admin | Asignar zona a notificador |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/assign` | Asignar inspecciones |
+| POST | `/api/unassign` | Desasignar inspecciones |
+| GET | `/api/recorridos` | Resumen por inspector |
+| GET | `/api/recorridos/:id` | Detalle de recorrido |
 
-### Notificadores
+### Importación
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| GET | `/api/notifiers` | Admin | Listar notificadores |
-| POST | `/api/notifiers` | Admin | Crear notificador |
-| PUT | `/api/notifiers/:id` | Admin | Editar notificador |
-| DELETE | `/api/notifiers/:id` | Admin | Eliminar notificador |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/import/csv` | Importar CSV de habilitaciones |
+| GET | `/api/import/batches` | Historial de importaciones |
 
-### Recorridos
+### Integración Externa
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| GET | `/api/recorridos` | Admin | Resumen de recorridos por notificador |
-| GET | `/api/recorridos/:id` | Admin | Detalle de notificaciones de un notificador |
-
-### App Móvil (Notificador)
-
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| GET | `/assignments` | Token | Notificaciones asignadas al notificador |
-| POST | `/api/notifications/:id/capture` | Token | Enviar captura (foto, GPS, firma) |
-| POST | `/sync` | Token | Sincronizar datos |
-| GET | `/report` | Token | Reporte del notificador |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/resultados` | Resultados para DIM360 externo |
 
 ### Verificación Pública
 
-| Método | Endpoint | Auth | Descripción |
-|---|---|---|---|
-| GET | `/verificar/:token` | - | Constancia oficial HTML (imprimible como PDF) |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/verificar/:token` | Página de verificación (sin auth) |
 
 ---
 
-## Estructura de la Base de Datos
+## Paleta de Colores
 
-### Tabla `notifications`
+El sistema utiliza la paleta oficial de la Municipalidad de San Miguel de Tucumán:
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | INTEGER PK | ID autoincremental |
-| citizen_name | TEXT | Nombre del ciudadano |
-| citizen_phone | TEXT | Teléfono |
-| address | TEXT | Domicilio |
-| latitude / longitude | REAL | Coordenadas GPS capturadas |
-| status | TEXT | pending / in_progress / synced / completed |
-| notifier_id | INTEGER FK | Notificador asignado |
-| photo_path | TEXT | Ruta/base64 de la foto |
-| signature_path | TEXT | Ruta/base64 de la firma SVG |
-| token | TEXT UNIQUE | Token de verificación (UUID) |
-| qr_code | TEXT | URL del QR de verificación |
-| sms_sent | BOOLEAN | Si se envió SMS |
-| created_at | TIMESTAMP | Fecha de alta |
-| notified_at | TIMESTAMP | Fecha y hora de notificación |
-| nro_orden | TEXT | Número de orden EPEN |
-| suministro | TEXT | Número de suministro |
-| nro_cliente | TEXT | Número de cliente |
-| tipo_notificacion | TEXT | Tipo (IN ORDENATIVO, etc.) |
-| nro_cronograma | TEXT | Número de cronograma |
-| correo | TEXT | Correo asociado |
-| sucursal | TEXT | Sucursal EPEN |
-| zona | TEXT | Zona geográfica |
-| import_batch_id | INTEGER FK | Lote de importación |
-
-### Tabla `users`
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | INTEGER PK | ID |
-| email | TEXT UNIQUE | Email de login |
-| password | TEXT | Hash bcrypt |
-| role | TEXT | admin / notifier |
-| name | TEXT | Nombre completo |
-| zone | TEXT | Zona asignada |
-
-### Tabla `import_batches`
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | INTEGER PK | ID |
-| filename | TEXT | Nombre del archivo importado |
-| nro_cronograma | TEXT | Cronograma del lote |
-| correo / sucursal | TEXT | Datos del lote |
-| total_records | INTEGER | Registros importados |
-| created_at | TIMESTAMP | Fecha de importación |
-
----
-
-## Formato CSV de Importación
-
-El CSV debe tener las siguientes columnas (separadas por `;`):
-
-```
-NRO_ORDEN;SUMINISTRO;NRO_CLIENTE;TIPO_NOTIFICACION;RAZON_SOCIAL;DOMICILIO_SUMINISTRO
-```
-
-Ejemplo:
-```
-2482834;153248;153883;IN ORDENATIVO DE INTIMACION;CANDIA MICAELA ALEJANDRA;LAGO TRAFUL 23 (8306) - S. P. CHANAR, CE
-```
-
-Los campos `nro_cronograma`, `correo` y `sucursal` se configuran al momento de importar desde el panel admin.
-
----
-
-## Stack Tecnológico
-
-| Capa | Tecnologías |
-|---|---|
-| Backend | Node.js, Express 4, SQLite3, JWT, bcryptjs, multer, csv-parser, uuid |
-| Admin Panel | HTML5, CSS3, JavaScript ES6+ (vanilla, sin frameworks) |
-| App Móvil | React Native, Expo SDK 54, expo-image-picker, expo-location, react-native-svg, AsyncStorage |
-| Paleta de colores | Verde EPEN: `#2e7d32` (primary), `#1b5e20` (dark), `#388e3c` (medium), `#e8f5e9` (light) |
-
----
-
-## Documentación Adicional
-
-- [QUICKSTART.md](QUICKSTART.md) - Guía de instalación paso a paso
-- [INSTRUCCIONES_APP.md](INSTRUCCIONES_APP.md) - Guía de uso de la app móvil
-- [PANEL_ADMIN.md](PANEL_ADMIN.md) - Documentación completa del panel admin
-- [PASAR_A_PRODUCCION.md](PASAR_A_PRODUCCION.md) - Checklist de migración a producción
-
----
-
-## Flujo Operativo
-
-```
-1. IMPORTAR     Admin sube CSV con notificaciones desde el panel
-       │
-2. ASIGNAR      Admin asigna notificaciones a notificadores por zona
-       │
-3. NOTIFICAR    Notificador abre la app, ve sus pendientes, va al domicilio
-       │         Captura: foto + GPS + firma del ciudadano
-       │
-4. VERIFICAR    Sistema genera constancia con token + QR
-       │         Se envía SMS al ciudadano con link de verificación
-       │
-5. CONSULTAR    Cualquier persona puede verificar la notificación
-                 escaneando el QR o ingresando al link /verificar/:token
-```
+| Uso | Color |
+|-----|-------|
+| Primario | `#0066ff` |
+| Primario oscuro | `#0052cc` |
+| Primario claro | `#3385ff` |
+| Fondo claro | `#e6f0ff` |
+| Texto | `#333333` |
 
 ---
 
 ## Licencia
 
-MIT
+Sistema desarrollado para la Municipalidad de San Miguel de Tucumán.
+
+---
+
+**DIM360** - Dirección de Ingresos Municipales | Municipalidad de San Miguel de Tucumán
