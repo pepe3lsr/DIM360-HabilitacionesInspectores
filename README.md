@@ -4,7 +4,7 @@
   <img src="public/img/logo-dim360.png" alt="DIM360 Logo" width="300">
 </p>
 
-Sistema completo de inspecciones de habilitaciones comerciales para la **Dirección de Ingresos Municipales (DIM)** de la **Municipalidad de San Miguel de Tucumán**. Permite gestionar todo el ciclo de vida de una inspección: importación masiva desde CSV, asignación a inspectores, ejecución en campo con captura de evidencia georeferenciada (foto, GPS, detalle, firma ológrafa), generación de constancia oficial con QR de verificación.
+Sistema completo de inspecciones de habilitaciones comerciales para la **Dirección de Ingresos Municipales (DIM)** de la **Municipalidad de San Miguel de Tucumán**. Permite gestionar todo el ciclo de vida de una inspección: importación masiva desde CSV, asignación a inspectores, ejecución en campo con captura de evidencia georeferenciada (foto, GPS, detalle), generación de constancia oficial con QR de verificación.
 
 ---
 
