@@ -1,0 +1,6 @@
+# Ignorar archivos de desarrollo local
+node_modules/
+.expo/
+*.log
+.git/
+.gitignore
